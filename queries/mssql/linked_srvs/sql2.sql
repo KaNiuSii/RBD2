@@ -1,9 +1,9 @@
 -- Add a linked server to the second SQL Server instance
 EXEC sp_addlinkedserver
     @server     = N'SQL2',
-    @srvproduct = N'',               -- pusty ciąg!
+    @srvproduct = N'',               -- pusty ciag!
     @provider   = N'MSOLEDBSQL',
-    @datasrc    = N'sql2,1433';      -- albo IP kontenera
+    @datasrc    = N'127.0.0.1,1434';      -- albo IP kontenera
 
 -- Configure security for the linked server
 EXEC sp_addlinkedsrvlogin 
@@ -21,4 +21,3 @@ SELECT [id]
       ,[active]
   FROM [SQL2].[RBD].[dbo].[classrooms]
 GO
-
