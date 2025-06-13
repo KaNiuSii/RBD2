@@ -2,7 +2,7 @@ EXEC sp_addlinkedserver
     @server = 'POSTGRES_LINK',
     @srvproduct = 'PostgreSQL',
     @provider = 'MSDASQL',
-    @datasrc = '127.0.0.1';  -- nazwa DSN z ODBC
+    @datasrc = 'PostgreSQL30';  -- nazwa DSN z ODBC
 
 -- logowanie
 EXEC sp_addlinkedsrvlogin 
@@ -10,4 +10,11 @@ EXEC sp_addlinkedsrvlogin
     @useself = 'FALSE',
     @locallogin = NULL,
     @rmtuser = 'postgres',
-    @rmtpassword = 'your_password';
+    @rmtpassword = 'postgres';
+
+SELECT *
+FROM [POSTGRES_LINK].[school].[public].[attendance];
+
+SELECT *
+FROM OPENQUERY(POSTGRES_LINK,
+               'SELECT * FROM "public"."attendance"');
