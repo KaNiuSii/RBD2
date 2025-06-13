@@ -1,0 +1,154 @@
+{
+  "schedules": {
+    "description": "Flexible schedule management with embedded lesson details",
+    "schema": {
+      "_id": "ObjectId",
+      "class_code": "String",
+      "subject_code": "String",
+      "teacher_info": {
+        "user_id": "Number",
+        "name": "String",
+        "email": "String"
+      },
+      "lesson_time": "Date",
+      "room": "String",
+      "recurring_pattern": {
+        "type": "String",
+        "frequency": "String",
+        "end_date": "Date",
+        "exceptions": [
+          "Date"
+        ]
+      },
+      "students_enrolled": [
+        "Number"
+      ],
+      "lesson_plan": {
+        "objectives": [
+          "String"
+        ],
+        "activities": [
+          "String"
+        ],
+        "resources": [
+          "String"
+        ]
+      },
+      "status": "String",
+      "created_at": "Date",
+      "updated_at": "Date"
+    }
+  },
+  "resources": {
+    "description": "Educational resources with flexible metadata",
+    "schema": {
+      "_id": "ObjectId",
+      "title": "String",
+      "description": "String",
+      "type": "String",
+      "subject_codes": [
+        "String"
+      ],
+      "grade_levels": [
+        "Number"
+      ],
+      "content": {
+        "text": "String",
+        "html": "String",
+        "markdown": "String"
+      },
+      "attachments": [
+        {
+          "filename": "String",
+          "url": "String",
+          "type": "String",
+          "size": "Number"
+        }
+      ],
+      "metadata": {
+        "difficulty": "String",
+        "duration": "Number",
+        "learning_objectives": [
+          "String"
+        ]
+      },
+      "created_by": "Number",
+      "created_at": "Date",
+      "updated_at": "Date",
+      "tags": [
+        "String"
+      ],
+      "access_permissions": {
+        "public": "Boolean",
+        "roles": [
+          "String"
+        ],
+        "specific_users": [
+          "Number"
+        ]
+      }
+    }
+  },
+  "student_portfolios": {
+    "description": "Rich student portfolios with embedded achievements and communications",
+    "schema": {
+      "_id": "ObjectId",
+      "student_id": "Number",
+      "academic_year": "String",
+      "assignments": [
+        {
+          "id": "String",
+          "title": "String",
+          "subject_code": "String",
+          "due_date": "Date",
+          "submitted_date": "Date",
+          "status": "String",
+          "grade": "String",
+          "feedback": "String",
+          "attachments": [
+            "String"
+          ]
+        }
+      ],
+      "achievements": [
+        {
+          "title": "String",
+          "description": "String",
+          "date_earned": "Date",
+          "type": "String",
+          "awarded_by": "Number"
+        }
+      ],
+      "behavioral_notes": [
+        {
+          "date": "Date",
+          "note": "String",
+          "type": "String",
+          "teacher_id": "Number"
+        }
+      ],
+      "parent_communications": [
+        {
+          "date": "Date",
+          "message": "String",
+          "sender_id": "Number",
+          "recipient_id": "Number",
+          "type": "String",
+          "read_status": "Boolean"
+        }
+      ],
+      "learning_goals": [
+        {
+          "goal": "String",
+          "target_date": "Date",
+          "status": "String",
+          "progress_notes": [
+            "String"
+          ]
+        }
+      ],
+      "created_at": "Date",
+      "updated_at": "Date"
+    }
+  }
+}
