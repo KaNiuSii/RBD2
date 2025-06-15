@@ -1,0 +1,2 @@
+running in powershell:
+& "C:\Program Files\MongoDB\Connector for BI\2.14\bin\mongosqld.exe" --config "P:\Projects\GITHUB\RBD2\mongodb-bi-connector\mongosqld.conf"
