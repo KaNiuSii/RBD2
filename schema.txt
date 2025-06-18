@@ -1,9 +1,3 @@
-running in powershell:
-& "C:\Program Files\MongoDB\Connector for BI\2.14\bin\mongosqld.exe" --config "C:\Users\Kacper\Desktop\rbd\rbd2\mongodb-bi-connector\mongosqld.conf"
-
-
-
-
 Table students {
   id integer [primary key]
   groupId integer
@@ -15,6 +9,7 @@ Table students {
 
 Table genders {
   id integer [primary key]
+  value string
 }
 
 Table teachers {
