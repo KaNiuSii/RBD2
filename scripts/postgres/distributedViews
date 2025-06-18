@@ -1,0 +1,51 @@
+-- Create a view for recent remarks (last 30 days)
+CREATE VIEW remarks.vw_recent_remarks AS
+SELECT 
+    r.id,
+    r.studentId,
+    r.teacherId,
+    r.value,
+    r.severity,
+    r.category,
+    r.created_date,
+    CASE 
+        WHEN r.created_date >= CURRENT_DATE - INTERVAL '1 day' THEN 'Today'
+        WHEN r.created_date >= CURRENT_DATE - INTERVAL '7 days' THEN 'This Week'
+        WHEN r.created_date >= CURRENT_DATE - INTERVAL '30 days' THEN 'This Month'
+        ELSE 'Older'
+    END as time_period
+FROM remarks.remark r
+WHERE r.created_date >= CURRENT_DATE - INTERVAL '30 days'
+ORDER BY r.created_date DESC;
+
+-- Create a view for serious remarks
+CREATE VIEW remarks.vw_serious_remarks AS
+SELECT 
+    r.id,
+    r.studentId,
+    r.teacherId,
+    r.value,
+    r.severity,
+    r.category,
+    r.created_date
+FROM remarks.remark r
+WHERE r.severity IN ('SERIOUS', 'CRITICAL')
+ORDER BY r.created_date DESC;
+
+-- Create a materialized view for performance (refreshed periodically)
+CREATE MATERIALIZED VIEW remarks.mv_remarks_statistics AS
+SELECT 
+    DATE_TRUNC('day', created_date) as remark_date,
+    COUNT(*) as total_remarks,
+    COUNT(*) FILTER (WHERE severity = 'CRITICAL') as critical_remarks,
+    COUNT(*) FILTER (WHERE severity = 'SERIOUS') as serious_remarks,
+    COUNT(*) FILTER (WHERE severity = 'WARNING') as warning_remarks,
+    COUNT(*) FILTER (WHERE severity = 'INFO') as info_remarks,
+    COUNT(DISTINCT studentId) as unique_students,
+    COUNT(DISTINCT teacherId) as unique_teachers
+FROM remarks.remark
+GROUP BY DATE_TRUNC('day', created_date)
+ORDER BY remark_date DESC;
+
+-- Create index on materialized view
+CREATE INDEX idx_mv_remarks_stats_date ON remarks.mv_remarks_statistics(remark_date);
