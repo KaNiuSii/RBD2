@@ -1,0 +1,36 @@
+log output directed to C:\Users\Kacper\Desktop\rbd\rbd2\mongodb-bi-connector\mongosqld.log
+2025-06-15T16:24:26.600+0200 I CONTROL    [initandlisten] mongosqld starting: version=v2.14.23 pid=29628 host=DESKTOP-U8K1QHA
+2025-06-15T16:24:26.600+0200 I CONTROL    [initandlisten] git version: 24fecb137ec191d97bb77512af94a44630acc406
+2025-06-15T16:24:26.600+0200 I CONTROL    [initandlisten] OpenSSL version OpenSSL 3.5.0 8 Apr 2025 (built with OpenSSL 3.5.0 8 Apr 2025)
+2025-06-15T16:24:26.600+0200 I CONTROL    [initandlisten] options: {config: "C:\\Users\\Kacper\\Desktop\\rbd\\rbd2\\mongodb-bi-connector\\mongosqld.conf", systemLog: {logAppend: true, path: "C:\\Users\\Kacper\\Desktop\\rbd\\rbd2\\mongodb-bi-connector\\mongosqld.log"}, security: {enabled: true}, mongodb: {net: {auth: {username: "root", password: "<protected>", source: "admin"}}}}
+2025-06-15T16:24:26.602+0200 I NETWORK    [initandlisten] waiting for connections at 127.0.0.1:3307
+2025-06-15T16:24:26.618+0200 I SCHEMA     [sampler] sampling MongoDB for schema...
+2025-06-15T16:24:26.628+0200 I SCHEMA     [sampler] mapped schema for 3 namespaces: "RBD" (3): ["student_portfolios", "resources", "schedules"]
+2025-06-15T16:27:12.060+0200 I NETWORK    [conn1] connection accepted from 127.0.0.1:50912 #1 (1 connection now open)
+2025-06-15T16:27:12.080+0200 I NETWORK    [conn1] end connection 127.0.0.1:50912 (0 connections now open)
+2025-06-15T16:28:42.962+0200 I NETWORK    [conn2] connection accepted from 127.0.0.1:50948 #2 (1 connection now open)
+2025-06-15T16:30:00.060+0200 I NETWORK    [conn2] end connection 127.0.0.1:50948 (0 connections now open)
+2025-06-15T16:37:40.315+0200 I NETWORK    [conn3] connection accepted from 127.0.0.1:51121 #3 (1 connection now open)
+2025-06-15T16:39:02.383+0200 I NETWORK    [conn3] end connection 127.0.0.1:51121 (0 connections now open)
+2025-06-15T16:47:51.196+0200 I NETWORK    [conn4] connection accepted from 127.0.0.1:51349 #4 (1 connection now open)
+2025-06-15T16:50:00.907+0200 I NETWORK    [conn4] end connection 127.0.0.1:51349 (0 connections now open)
+log output directed to C:\Users\Kacper\Desktop\rbd\rbd2\mongodb-bi-connector\mongosqld.log
+2025-06-16T00:06:44.232+0200 I CONTROL    [initandlisten] mongosqld starting: version=v2.14.23 pid=8228 host=DESKTOP-U8K1QHA
+2025-06-16T00:06:44.232+0200 I CONTROL    [initandlisten] git version: 24fecb137ec191d97bb77512af94a44630acc406
+2025-06-16T00:06:44.232+0200 I CONTROL    [initandlisten] OpenSSL version OpenSSL 3.5.0 8 Apr 2025 (built with OpenSSL 3.5.0 8 Apr 2025)
+2025-06-16T00:06:44.232+0200 I CONTROL    [initandlisten] options: {config: "C:\\Users\\Kacper\\Desktop\\rbd\\rbd2\\mongodb-bi-connector\\mongosqld.conf", systemLog: {logAppend: true, path: "C:\\Users\\Kacper\\Desktop\\rbd\\rbd2\\mongodb-bi-connector\\mongosqld.log"}, security: {enabled: true}, mongodb: {net: {auth: {username: "root", password: "<protected>", source: "admin"}}}}
+2025-06-16T00:06:44.233+0200 I NETWORK    [initandlisten] waiting for connections at 127.0.0.1:3307
+2025-06-16T00:06:44.256+0200 I SCHEMA     [sampler] sampling MongoDB for schema...
+2025-06-16T00:06:44.267+0200 I SCHEMA     [sampler] mapped schema for 3 namespaces: "RBD" (3): ["student_portfolios", "resources", "schedules"]
+2025-06-16T00:07:01.003+0200 I NETWORK    [conn1] connection accepted from 127.0.0.1:54317 #1 (1 connection now open)
+2025-06-16T00:09:04.280+0200 I NETWORK    [conn1] end connection 127.0.0.1:54317 (0 connections now open)
+2025-06-16T00:09:17.658+0200 I NETWORK    [conn2] connection accepted from 127.0.0.1:54343 #2 (1 connection now open)
+2025-06-16T00:10:21.745+0200 I NETWORK    [conn2] end connection 127.0.0.1:54343 (0 connections now open)
+2025-06-16T00:10:22.206+0200 I NETWORK    [conn3] connection accepted from 127.0.0.1:54361 #3 (1 connection now open)
+2025-06-16T00:17:27.895+0200 I NETWORK    [conn3] end connection 127.0.0.1:54361 (0 connections now open)
+2025-06-16T00:17:39.676+0200 I NETWORK    [conn4] connection accepted from 127.0.0.1:54445 #4 (1 connection now open)
+2025-06-16T00:21:20.371+0200 I NETWORK    [conn4] end connection 127.0.0.1:54445 (0 connections now open)
+2025-06-16T00:29:21.234+0200 I NETWORK    [conn5] connection accepted from 127.0.0.1:54531 #5 (1 connection now open)
+2025-06-16T00:29:21.253+0200 I NETWORK    [conn5] end connection 127.0.0.1:54531 (0 connections now open)
+2025-06-16T00:30:36.195+0200 I NETWORK    [conn6] connection accepted from 127.0.0.1:54560 #6 (1 connection now open)
+2025-06-16T00:31:40.227+0200 I NETWORK    [conn6] end connection 127.0.0.1:54560 (0 connections now open)
