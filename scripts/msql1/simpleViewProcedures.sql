@@ -35,7 +35,7 @@ BEGIN
     
     DECLARE @studentId INT, @parentId INT;
     
-    TRY
+    BEGIN TRY
         -- Insert student
         INSERT INTO students (firstName, lastName, birthday, genderId, groupId)
         VALUES (@firstName, @lastName, @birthday, @genderId, @groupId);
