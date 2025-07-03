@@ -22,6 +22,7 @@ GRANT CREATE PUBLIC DATABASE LINK TO contracts_admin;
 GRANT EXECUTE ANY PROCEDURE TO contracts_admin;
 GRANT SELECT ANY TABLE TO contracts_admin;
 GRANT GLOBAL QUERY REWRITE TO contracts_admin;
+GRANT CREATE SEQUENCE TO contracts_admin;
 
 -- Switch to the new user
 CONNECT contracts_admin/secure_password;
