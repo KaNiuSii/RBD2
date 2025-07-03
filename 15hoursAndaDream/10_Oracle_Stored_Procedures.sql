@@ -470,25 +470,53 @@ END pkg_DistributedFinance;
 -- ==========================================
 -- SECTION 6: Test the Procedures
 -- ==========================================
-
--- Test the procedures
+SET SERVEROUTPUT ON;
 DECLARE
     v_cursor SYS_REFCURSOR;
+
     v_result VARCHAR2(200);
-    v_contract_id NUMBER;
+
+    v_total_contracts        NUMBER;
+    v_total_students         NUMBER;
+    v_total_monthly_revenue  NUMBER;
+    v_total_collected        NUMBER;
+    v_total_pending          NUMBER;
 BEGIN
     DBMS_OUTPUT.PUT_LINE('Testing Oracle distributed procedures...');
 
-    -- Test contract creation
-    pkg_DistributedFinance.sp_DistributedPaymentProcessing(1, 500, SYSDATE, v_result);
+    pkg_DistributedFinance.sp_DistributedPaymentProcessing(
+        p_student_id   => 4,
+        p_payment_amount => 600,
+        p_payment_date => SYSDATE,
+        p_result       => v_result
+    );
     DBMS_OUTPUT.PUT_LINE('Payment processing result: ' || v_result);
 
-    -- Test finance report
     pkg_DistributedFinance.sp_GenerateFinanceReport('SUMMARY', v_cursor);
+
+    FETCH v_cursor
+        INTO v_total_contracts,
+             v_total_students,
+             v_total_monthly_revenue,
+             v_total_collected,
+             v_total_pending;
+
     DBMS_OUTPUT.PUT_LINE('Finance report generated successfully');
+    DBMS_OUTPUT.PUT_LINE('----- SUMMARY REPORT -----');
+    DBMS_OUTPUT.PUT_LINE('Total contracts       : ' || v_total_contracts);
+    DBMS_OUTPUT.PUT_LINE('Total students        : ' || v_total_students);
+    DBMS_OUTPUT.PUT_LINE('Total monthly revenue : ' || v_total_monthly_revenue);
+    DBMS_OUTPUT.PUT_LINE('Total collected       : ' || v_total_collected);
+    DBMS_OUTPUT.PUT_LINE('Total pending         : ' || v_total_pending);
+
+    CLOSE v_cursor;
 
     DBMS_OUTPUT.PUT_LINE('Oracle distributed procedures testing completed!');
+EXCEPTION
+    WHEN OTHERS THEN
+        IF v_cursor%ISOPEN THEN
+            CLOSE v_cursor;
+        END IF;
+        RAISE;
 END;
 /
-
-PROMPT 'Oracle stored procedures and distributed operations completed successfully!';

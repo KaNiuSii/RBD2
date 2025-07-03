@@ -27,8 +27,8 @@ GO
 -- Create distribution database
 EXEC sp_adddistributiondb 
     @database = 'DistributionDB',
-    @data_folder = N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\Data',
-    @log_folder = N'C:\Program Files\Microsoft SQL Server\MSSQL16.MSSQLSERVER\MSSQL\Data',
+    @data_folder = N'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Data',
+    @log_folder = N'C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\Data',
     @security_mode = 1;
 GO
 
@@ -96,53 +96,6 @@ EXEC sp_addarticle
     @destination_owner = 'dbo';
 GO
 
--- Create procedure to monitor replication status
-CREATE OR ALTER PROCEDURE sp_MonitorReplicationStatus
-AS
-BEGIN
-    SET NOCOUNT ON;
-
-    -- Check publication status
-    SELECT 'Publication Status' as ReportSection;
-    SELECT 
-        p.name as PublicationName,
-        p.repl_freq as ReplicationFrequency,
-        p.status as Status,
-        p.retention as RetentionPeriod,
-        p.sync_method as SyncMethod
-    FROM dbo.syspublications p;
-
-    -- Check subscription status
-    SELECT 'Subscription Status' as ReportSection;
-    SELECT 
-        s.publication as PublicationName,
-        s.subscriber_server as SubscriberServer,
-        s.subscriber_db as SubscriberDatabase,
-        s.subscription_type as SubscriptionType,
-        s.sync_type as SyncType,
-        s.status as Status
-    FROM dbo.syssubscriptions s;
-
-    -- Check replication agents
-    SELECT 'Agent Status' as ReportSection;
-    SELECT 
-        j.name as JobName,
-        j.enabled as IsEnabled,
-        ja.last_run_date,
-        ja.last_run_time,
-        CASE ja.last_run_outcome
-            WHEN 0 THEN 'Failed'
-            WHEN 1 THEN 'Succeeded'
-            WHEN 2 THEN 'Retry'
-            WHEN 3 THEN 'Canceled'
-            WHEN 5 THEN 'Unknown'
-        END as LastRunOutcome
-    FROM msdb.dbo.sysjobs j
-        INNER JOIN msdb.dbo.sysjobactivity ja ON j.job_id = ja.job_id
-    WHERE j.category_id IN (10, 11, 12, 13, 14, 15, 16) -- Replication categories
-    ORDER BY ja.last_run_date DESC, ja.last_run_time DESC;
-END;
-GO
 
 -- Create procedure to manually start snapshot agents
 CREATE OR ALTER PROCEDURE sp_StartSnapshotAgents
@@ -179,7 +132,3 @@ BEGIN
     DEALLOCATE snapshot_cursor;
 END;
 GO
-
-PRINT 'MSSQL Replication configuration completed successfully!';
-PRINT 'Note: Adjust server names and paths according to your environment.';
-PRINT 'Ensure SQL Server Agent is running on all participating servers.';

@@ -28,7 +28,7 @@ EXEC master.dbo.sp_addlinkedserver
     @server = N'ORACLE_FINANCE',
     @srvproduct = N'Oracle',
     @provider = N'OraOLEDB.Oracle',
-    @datasrc = N'localhost:1521/XE';  -- Adjust connection string as needed
+    @datasrc = N'127.0.0.1:1521/PD19C';
 GO
 
 -- Create login mapping for Oracle
@@ -39,6 +39,8 @@ EXEC master.dbo.sp_addlinkedsrvlogin
     @rmtuser = N'FINANCE_DB',
     @rmtpassword = N'Finance123';
 GO
+
+SELECT * FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS
 
 -- ==========================================
 -- STEP 2: Configure linked server to PostgreSQL
@@ -54,7 +56,7 @@ EXEC master.dbo.sp_addlinkedserver
     @server = N'POSTGRES_REMARKS',
     @srvproduct = N'PostgreSQL',
     @provider = N'MSDASQL',
-    @provstr = N'DRIVER={PostgreSQL ODBC Driver(UNICODE)};SERVER=localhost;PORT=5432;DATABASE=remarksdb;UID=remarks_user;PWD=Remarks123;';
+    @datasrc  = N'PostgreSQL30'; 
 GO
 
 -- Create login mapping for PostgreSQL
@@ -65,6 +67,8 @@ EXEC master.dbo.sp_addlinkedsrvlogin
     @rmtuser = N'remarks_user',
     @rmtpassword = N'Remarks123';
 GO
+
+SELECT * FROM [POSTGRES_REMARKS].[remarks_system].[remarks_main].[remark]
 
 -- ==========================================
 -- STEP 3: Configure linked server to another MSSQL (for replication)
@@ -78,30 +82,32 @@ GO
 -- Create linked server to another MSSQL instance (adjust server name as needed)
 EXEC master.dbo.sp_addlinkedserver 
     @server = N'MSSQL_REPLICA',
-    @srvproduct = N'SQL Server';
+    @srvproduct = N'',  
+    @provider   = N'MSOLEDBSQL',
+    @datasrc    = N'127.0.0.1,1434';      
 GO
 
--- Create login mapping for MSSQL replica
 EXEC master.dbo.sp_addlinkedsrvlogin 
     @rmtsrvname = N'MSSQL_REPLICA',
-    @useself = N'True';
+    @useself = 'FALSE',
+    @locallogin = NULL,
+    @rmtuser = 'sa',
+    @rmtpassword = 'Str0ng!Passw0rd';
 GO
 
 -- ==========================================
 -- STEP 4: Configure linked server to Excel (example)
 -- ==========================================
 
--- Drop existing linked server if exists
 IF EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'EXCEL_DATA')
     EXEC master.dbo.sp_dropserver @server=N'EXCEL_DATA', @droplogins='droplogins';
 GO
 
--- Create linked server for Excel files
 EXEC master.dbo.sp_addlinkedserver 
     @server = N'EXCEL_DATA',
     @srvproduct = N'Excel',
     @provider = N'Microsoft.ACE.OLEDB.12.0',
-    @datasrc = N'C:\Data\SchoolData.xlsx',
+    @datasrc = N'C:\excel_exports\SchoolData.xlsx',
     @provstr = N'Excel 12.0;HDR=YES;';
 GO
 
@@ -112,7 +118,7 @@ GO
 -- Test Oracle connection
 BEGIN TRY
     SELECT 'Oracle connection test:' as Test;
-    SELECT TOP 5 * FROM ORACLE_FINANCE.FINANCE_DB.CONTRACTS;
+    SELECT TOP 5 * FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS;
     PRINT 'Oracle linked server connection successful!';
 END TRY
 BEGIN CATCH
@@ -182,12 +188,12 @@ FROM students s
             c.monthlyAmount,
             ISNULL(p.totalPaid, 0) as totalPaid,
             ISNULL(c.monthlyAmount * 12 - p.totalPaid, c.monthlyAmount * 12) as pendingAmount
-        FROM ORACLE_FINANCE.FINANCE_DB.CONTRACTS c
+        FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS c
             LEFT JOIN (
                 SELECT 
                     contractId,
                     SUM(CASE WHEN status = 'PAID' THEN amount ELSE 0 END) as totalPaid
-                FROM ORACLE_FINANCE.FINANCE_DB.PAYMENTS
+                FROM ORACLE_FINANCE..FINANCE_DB.PAYMENTS
                 GROUP BY contractId
             ) p ON c.id = p.contractId
     ) oracle_data ON s.id = oracle_data.studentId;
@@ -226,8 +232,8 @@ BEGIN
             c.endDate,
             COUNT(p.id) as totalPayments,
             SUM(CASE WHEN p.status = 'PAID' THEN p.amount ELSE 0 END) as totalPaid
-        FROM ORACLE_FINANCE.FINANCE_DB.CONTRACTS c
-            LEFT JOIN ORACLE_FINANCE.FINANCE_DB.PAYMENTS p ON c.id = p.contractId
+        FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS c
+            LEFT JOIN ORACLE_FINANCE..FINANCE_DB.PAYMENTS p ON c.id = p.contractId
         WHERE c.studentId = @StudentId
         GROUP BY c.monthlyAmount, c.startDate, c.endDate;
     END TRY
@@ -237,14 +243,24 @@ BEGIN
 
     -- Get remarks from PostgreSQL
     BEGIN TRY
-        SELECT * FROM OPENQUERY(POSTGRES_REMARKS, 
-            'SELECT teacherId, value as remark, created_date 
-             FROM remarks_main.remark 
-             WHERE studentId = ' + CAST(@StudentId AS VARCHAR(10)));
-    END TRY
-    BEGIN CATCH
-        SELECT 'Remarks data unavailable' as Error;
-    END CATCH;
+    SELECT  teacherId,
+            remark,
+            created_date
+    FROM    OPENQUERY(POSTGRES_REMARKS,
+            'SELECT teacherId,
+                    value      AS remark,
+                    created_date,
+                    studentId  -- musi być zwrócone!
+             FROM   remarks_main.remark'
+            ) AS rq
+    WHERE   rq.studentId = @StudentId;
+
+	END TRY
+	BEGIN CATCH
+		SELECT 'Remarks data unavailable' AS Error,
+			   ERROR_NUMBER()             AS ErrNo,
+			   ERROR_MESSAGE()            AS ErrMsg;
+	END CATCH;
 END;
 GO
 
@@ -252,14 +268,12 @@ GO
 -- STEP 8: Configure distributed transactions
 -- ==========================================
 
--- Function to verify DTC configuration
 CREATE OR ALTER FUNCTION fn_CheckDTCConfiguration()
 RETURNS VARCHAR(100)
 AS
 BEGIN
     DECLARE @Result VARCHAR(100);
 
-    -- This is a simplified check - in reality, you would check DTC services
     IF EXISTS (SELECT * FROM sys.configurations WHERE name = 'remote proc trans' AND value = 1)
         SET @Result = 'DTC appears to be configured for distributed transactions';
     ELSE
@@ -274,6 +288,3 @@ EXEC sp_configure 'remote proc trans', 1;
 RECONFIGURE;
 GO
 
-PRINT 'Linked servers configured successfully!';
-PRINT 'Note: Ensure Oracle and PostgreSQL servers are running and accessible.';
-PRINT 'You may need to adjust connection strings based on your environment.';

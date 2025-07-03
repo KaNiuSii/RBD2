@@ -70,7 +70,7 @@ BEGIN
         DECLARE @NewStudentId INT = SCOPE_IDENTITY();
 
         -- Step 2: Create contract in Oracle database
-        INSERT INTO ORACLE_FINANCE.FINANCE_DB.CONTRACTS 
+        INSERT INTO ORACLE_FINANCE..FINANCE_DB.CONTRACTS 
             (studentId, parentId, startDate, endDate, monthlyAmount)
         VALUES 
             (@NewStudentId, @ParentId, GETDATE(), DATEADD(YEAR, 1, GETDATE()), @MonthlyAmount);
@@ -120,11 +120,11 @@ BEGIN
     BEGIN TRY
         -- Step 1: Record payment in Oracle
         DECLARE @ContractId INT;
-        SELECT @ContractId = id FROM ORACLE_FINANCE.FINANCE_DB.CONTRACTS WHERE studentId = @StudentId;
+        SELECT @ContractId = id FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS WHERE studentId = @StudentId;
 
         IF @ContractId IS NOT NULL
         BEGIN
-            INSERT INTO ORACLE_FINANCE.FINANCE_DB.PAYMENTS 
+            INSERT INTO ORACLE_FINANCE..FINANCE_DB.PAYMENTS 
                 (contractId, dueDate, paidDate, amount, status)
             VALUES 
                 (@ContractId, @AttendanceDate, @AttendanceDate, @PaymentAmount, 'PAID');
@@ -270,7 +270,3 @@ BEGIN
     ORDER BY StartTime DESC;
 END;
 GO
-
-PRINT 'Distributed transactions script completed successfully!';
-PRINT 'Ensure MS DTC is properly configured on all participating servers.';
-PRINT 'Test the procedures with small datasets first.';

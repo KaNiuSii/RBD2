@@ -118,6 +118,10 @@ BEGIN
 END;
 /
 
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON contracts_remote
+    TO FINANCE_DB;
+
 CONNECT REMOTE_DB2/Remote123;
 
 -- Create a payments summary table in another remote schema
@@ -138,6 +142,10 @@ BEGIN
     SELECT payment_summary_seq.NEXTVAL INTO :NEW.id FROM dual;
 END;
 /
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON payment_summary
+    TO FINANCE_DB;
 
 CONNECT FINANCE_DB/Finance123;
 

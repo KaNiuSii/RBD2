@@ -51,7 +51,7 @@ CREATE TABLE StudentGradesStaging (
 -- Procedure to read Excel file using OPENROWSET
 CREATE OR ALTER PROCEDURE sp_ReadExcelFile
     @FilePath NVARCHAR(500),
-    @SheetName NVARCHAR(100) = 'Sheet1'
+    @SheetName NVARCHAR(100) = 'Arkusz1'
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -94,47 +94,55 @@ GO
 -- SECTION 4: Excel Export Functions
 -- ==========================================
 
--- Procedure to export data to Excel format (using BCP)
 CREATE OR ALTER PROCEDURE sp_ExportToExcelFormat
     @QueryText NVARCHAR(MAX),
     @OutputPath NVARCHAR(500),
     @IncludeHeaders BIT = 1
 AS
 BEGIN
-    SET NOCOUNT ON;
+        SET NOCOUNT ON;
 
-    DECLARE @BCPCommand NVARCHAR(MAX);
-    DECLARE @TempTable NVARCHAR(100) = 'TempExport_' + REPLACE(CAST(NEWID() AS VARCHAR(36)), '-', '');
-    DECLARE @SQL NVARCHAR(MAX);
+    DELETE FROM OPENROWSET('Microsoft.ACE.OLEDB.12.0',
+    'Excel 12.0;Database=C:\excel_exports\SchoolData.xlsx;HDR=YES',
+    'SELECT * FROM [Arkusz1$]')
 
-    BEGIN TRY
-        -- Create temporary table with query results
-        SET @SQL = 'SELECT * INTO ' + @TempTable + ' FROM (' + @QueryText + ') AS ExportData';
-        EXEC sp_executesql @SQL;
+    INSERT INTO OPENROWSET
+	('Microsoft.ACE.OLEDB.12.0',
+    'Excel 12.0;Database=C:\excel_exports\SchoolData.xlsx;HDR=YES',
+        'SELECT StudentId,
+                StudentName,
+                Gender,
+                SchoolYear,
+                TotalMarks,
+                AverageGrade,
+                LowestGrade,
+                HighestGrade,
+                ExcellentGrades,
+                FailingGrades
+         FROM [Arkusz1$]'
+    )
+    SELECT
+        CONVERT(varchar(36), s.id)                      AS StudentId,
 
-        -- Build BCP command for export
-        SET @BCPCommand = 'bcp "SELECT * FROM SchoolDB.dbo.' + @TempTable + '" queryout "' + @OutputPath + '" -c -t"," -S' + @@SERVERNAME + ' -T';
+        s.firstName + ' ' + s.lastName                  AS StudentName,
+        g.value                                         AS Gender,
+        y.value                                         AS SchoolYear,
 
-        -- Execute BCP command (commented out for safety)
-        -- EXEC xp_cmdshell @BCPCommand;
+        CONVERT(int, COUNT(m.id))                       AS TotalMarks,
 
-        -- Clean up temporary table
-        SET @SQL = 'DROP TABLE ' + @TempTable;
-        EXEC sp_executesql @SQL;
+        CONVERT(numeric(18,2), AVG(CAST(m.value AS float))) AS AverageGrade,
+        CONVERT(numeric(18,2), MIN(m.value))            AS LowestGrade,
+        CONVERT(numeric(18,2), MAX(m.value))            AS HighestGrade,
 
-        PRINT 'Data export prepared successfully for: ' + @OutputPath;
+        CONVERT(int, SUM(CASE WHEN m.value >= 90 THEN 1 END)) AS ExcellentGrades,
+        CONVERT(int, SUM(CASE WHEN m.value < 60  THEN 1 END)) AS FailingGrades
+    FROM students s
+        LEFT JOIN genders g ON s.genderId = g.id
+        LEFT JOIN groups  gr ON s.groupId = gr.id
+        LEFT JOIN years   y  ON gr.yearId = y.id
+        LEFT JOIN marks   m  ON s.id = m.studentId
+    GROUP BY s.id, s.firstName, s.lastName, g.value, y.value;
 
-    END TRY
-    BEGIN CATCH
-        -- Clean up on error
-        IF OBJECT_ID(@TempTable) IS NOT NULL
-        BEGIN
-            SET @SQL = 'DROP TABLE ' + @TempTable;
-            EXEC sp_executesql @SQL;
-        END;
-
-        PRINT 'Error preparing export: ' + ERROR_MESSAGE();
-    END CATCH;
 END;
 GO
 
@@ -189,13 +197,43 @@ BEGIN
 END;
 GO
 
--- Test the Excel integration procedures
-PRINT 'Testing Excel Integration...';
-
 -- Test analytical reports
 EXEC sp_CreateAnalyticalReport @ReportType = 'STUDENT_PERFORMANCE';
 
-PRINT 'Excel integration setup completed successfully!';
-PRINT 'Note: Ensure proper OLE DB providers are installed for Excel access.';
-PRINT 'For .xlsx files, install Microsoft Access Database Engine Redistributable.';
-PRINT 'Adjust file paths according to your environment.';
+DECLARE @ReportQuery NVARCHAR(MAX) = '
+    SELECT 
+        s.id as StudentId,
+        s.firstName + '' '' + s.lastName as StudentName,
+        g.value as Gender,
+        y.value as SchoolYear,
+        COUNT(m.id) as TotalMarks,
+        AVG(CAST(m.value AS FLOAT)) as AverageGrade,
+        MIN(m.value) as LowestGrade,
+        MAX(m.value) as HighestGrade,
+        COUNT(CASE WHEN m.value >= 90 THEN 1 END) as ExcellentGrades,
+        COUNT(CASE WHEN m.value < 60 THEN 1 END) as FailingGrades
+    FROM students s
+        LEFT JOIN genders g ON s.genderId = g.id
+        LEFT JOIN groups gr ON s.groupId = gr.id
+        LEFT JOIN years y ON gr.yearId = y.id
+        LEFT JOIN marks m ON s.id = m.studentId
+    GROUP BY s.id, s.firstName, s.lastName, g.value, y.value
+';
+
+-- Ścieżka do pliku (należy podać pełną ścieżkę na serwerze SQL)
+DECLARE @OutputFilePath NVARCHAR(500) = 'C:\excel_exports\SchoolData.xlsx';
+
+-- Eksport danych
+EXEC sp_ExportToExcelFormat 
+    @QueryText = @ReportQuery, 
+    @OutputPath = @OutputFilePath, 
+    @IncludeHeaders = 1;
+
+
+SELECT c.name       AS ColumnName,
+       ty.name      AS SqlType,
+       c.max_length AS [len]
+FROM sys.columns c
+JOIN sys.types  ty ON ty.user_type_id = c.user_type_id
+WHERE c.object_id = OBJECT_ID('dbo.students')
+  AND c.name = 'id';

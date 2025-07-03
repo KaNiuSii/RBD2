@@ -19,26 +19,25 @@ FROM OPENROWSET('MSOLEDBSQL',
     'SELECT TOP 5 * FROM SchoolDB.dbo.students') AS RemoteStudents;
 
 -- Example 2: MSSQL to Oracle AD HOC query
-SELECT 'AD HOC Query - MSSQL to Oracle:' as QueryType;
-SELECT *
-FROM OPENROWSET('OraOLEDB.Oracle',
-    'localhost:1521/XE;FINANCE_DB;Finance123',
-    'SELECT * FROM contracts WHERE ROWNUM <= 5') AS OracleContracts;
+--SELECT 'AD HOC Query - MSSQL to Oracle:' as QueryType;
+--SELECT *
+--FROM OPENROWSET('OraOLEDB.Oracle',
+--    'PD19C;FINANCE_DB;Finance123',
+--    'SELECT * FROM FINANCE_DB.CONTRACTS WHERE ROWNUM <= 5') AS OracleContracts;
 
 -- Example 3: MSSQL to PostgreSQL AD HOC query (requires ODBC)
 SELECT 'AD HOC Query - MSSQL to PostgreSQL:' as QueryType;
--- Note: This requires proper ODBC driver configuration
 SELECT *
 FROM OPENROWSET('MSDASQL',
-    'DRIVER={PostgreSQL ODBC Driver(UNICODE)};SERVER=localhost;PORT=5432;DATABASE=remarksdb;UID=remarks_user;PWD=Remarks123;',
+    'DRIVER={PostgreSQL Unicode(x64)};SERVER=localhost;PORT=5432;DATABASE=remarks_system;UID=remarks_user;PWD=Remarks123;',
     'SELECT * FROM remarks_main.remark LIMIT 5') AS PostgresRemarks;
 
 -- Example 4: MSSQL to Excel AD HOC query
 SELECT 'AD HOC Query - MSSQL to Excel:' as QueryType;
 SELECT *
 FROM OPENROWSET('Microsoft.ACE.OLEDB.12.0',
-    'Excel 12.0;Database=C:\Data\StudentGrades.xlsx;HDR=YES',
-    'SELECT * FROM [Sheet1$]') AS ExcelData;
+    'Excel 12.0;Database=C:\excel_exports\SchoolData.xlsx;HDR=YES',
+    'SELECT * FROM [Arkusz1$]') AS ExcelData;
 
 -- ==========================================
 -- SECTION 2: Multi-source Access Queries
@@ -59,7 +58,7 @@ OracleFinance AS (
         studentId,
         monthlyAmount,
         startDate as ContractStart
-    FROM ORACLE_FINANCE.FINANCE_DB.CONTRACTS
+    FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS
 ),
 PostgresRemarks AS (
     SELECT * FROM OPENQUERY(POSTGRES_REMARKS,
@@ -71,10 +70,10 @@ SELECT
     sb.id,
     sb.FullName,
     sb.birthday,
-    ISNULL(of.monthlyAmount, 0) as MonthlyFee,
+    ISNULL(orf.monthlyAmount, 0) as MonthlyFee,
     ISNULL(pr.RemarkCount, 0) as TotalRemarks
 FROM StudentBasic sb
-    LEFT JOIN OracleFinance of ON sb.id = of.studentId
+    LEFT JOIN OracleFinance orf ON sb.id = orf.studentId
     LEFT JOIN PostgresRemarks pr ON sb.id = pr.studentId
 ORDER BY sb.id;
 
@@ -114,26 +113,24 @@ FROM OPENQUERY(POSTGRES_REMARKS,
 
 -- Example 8: Insert data into Oracle from MSSQL
 SELECT 'Remote Data Modification - Insert to Oracle:' as Operation;
-INSERT INTO ORACLE_FINANCE.FINANCE_DB.CONTRACTS 
+INSERT INTO ORACLE_FINANCE..FINANCE_DB.CONTRACTS 
     (studentId, parentId, startDate, endDate, monthlyAmount)
 VALUES 
     (11, 1, '2024-01-01', '2024-12-31', 575.00);
 
 -- Example 9: Update data in Oracle from MSSQL
 SELECT 'Remote Data Modification - Update Oracle:' as Operation;
-UPDATE ORACLE_FINANCE.FINANCE_DB.PAYMENTS
+UPDATE ORACLE_FINANCE..FINANCE_DB.PAYMENTS
 SET status = 'PAID', paidDate = GETDATE()
 WHERE contractId IN (
-    SELECT id FROM ORACLE_FINANCE.FINANCE_DB.CONTRACTS 
+    SELECT id FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS 
     WHERE studentId = 11
 ) AND status = 'PENDING';
 
 -- Example 10: Insert data into PostgreSQL from MSSQL (using OPENQUERY)
 SELECT 'Remote Data Modification - Insert to PostgreSQL:' as Operation;
-DECLARE @sql NVARCHAR(MAX);
-SET @sql = 'INSERT INTO remarks_main.remark (studentId, teacherId, value) 
-            VALUES (11, 1, ''Student transferred from another system - good academic record'')';
-SELECT * FROM OPENQUERY(POSTGRES_REMARKS, @sql);
+SELECT * FROM OPENQUERY(POSTGRES_REMARKS, 'INSERT INTO remarks_main.remark (studentId, teacherId, value) 
+            VALUES (11, 1, ''Student transferred from another system - good academic record'')');
 
 -- ==========================================
 -- SECTION 5: Distributed Views and Procedures
@@ -152,7 +149,7 @@ FROM students s
         SELECT 
             CAST(studentId AS INT) as studentId,
             CAST(monthlyAmount AS DECIMAL(10,2)) as monthlyAmount
-        FROM ORACLE_FINANCE.FINANCE_DB.CONTRACTS
+        FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS
     ) oracle_data ON s.id = oracle_data.studentId
     LEFT JOIN (
         SELECT 
@@ -191,8 +188,8 @@ BEGIN
                 c.studentId,
                 c.monthlyAmount * 12 as TotalDue,
                 SUM(CASE WHEN p.status = 'PAID' THEN p.amount ELSE 0 END) as TotalPaid
-            FROM ORACLE_FINANCE.FINANCE_DB.CONTRACTS c
-                LEFT JOIN ORACLE_FINANCE.FINANCE_DB.PAYMENTS p ON c.id = p.contractId
+            FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS c
+                LEFT JOIN ORACLE_FINANCE..FINANCE_DB.PAYMENTS p ON c.id = p.contractId
             GROUP BY c.studentId, c.monthlyAmount
         ) finance ON s.id = finance.studentId
         LEFT JOIN (
@@ -232,7 +229,7 @@ RETURN
     SELECT 
         'Oracle' as DataSource,
         CASE 
-            WHEN EXISTS (SELECT 1 FROM ORACLE_FINANCE.FINANCE_DB.CONTRACTS) 
+            WHEN EXISTS (SELECT 1 FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS) 
             THEN 'Connected' 
             ELSE 'Failed' 
         END as Status
@@ -293,6 +290,3 @@ BEGIN
          FROM remarks_main.remark');
 END;
 GO
-
-PRINT 'Distributed queries and operations script completed successfully!';
-PRINT 'Test the procedures and views to ensure proper connectivity to remote data sources.';
