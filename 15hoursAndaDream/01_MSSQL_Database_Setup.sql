@@ -1,17 +1,9 @@
-
--- ==========================================
--- MSSQL Database Setup Script
--- School Management System - Main Database
--- ==========================================
-
--- Create the School database
 CREATE DATABASE SchoolDB;
 GO
 
 USE SchoolDB;
 GO
 
--- Create tables following the schema
 CREATE TABLE genders (
     id int IDENTITY(1,1) PRIMARY KEY,
     value nvarchar(50) NOT NULL

@@ -1,13 +1,7 @@
 
--- ==========================================
--- MSSQL Sample Data Script
--- School Management System - Main Database
--- ==========================================
-
 USE SchoolDB;
 GO
 
--- Insert sample data
 INSERT INTO genders (value) VALUES 
 ('Male'), ('Female'), ('Other');
 
