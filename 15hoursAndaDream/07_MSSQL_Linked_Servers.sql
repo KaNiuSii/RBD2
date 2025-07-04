@@ -1,13 +1,7 @@
 
--- ==========================================
--- MSSQL Linked Servers Configuration Script
--- Distributed Database Setup
--- ==========================================
-
 USE master;
 GO
 
--- Enable Ad Hoc Distributed Queries (required for OPENROWSET)
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
 EXEC sp_configure 'Ad Hoc Distributed Queries', 1;
@@ -15,15 +9,13 @@ RECONFIGURE;
 GO
 
 -- ==========================================
--- STEP 1: Configure linked server to Oracle
+-- Configure linked server to Oracle
 -- ==========================================
 
--- Drop existing linked server if exists
 IF EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'ORACLE_FINANCE')
     EXEC master.dbo.sp_dropserver @server=N'ORACLE_FINANCE', @droplogins='droplogins';
 GO
 
--- Create linked server to Oracle
 EXEC master.dbo.sp_addlinkedserver 
     @server = N'ORACLE_FINANCE',
     @srvproduct = N'Oracle',
@@ -31,7 +23,6 @@ EXEC master.dbo.sp_addlinkedserver
     @datasrc = N'127.0.0.1:1521/PD19C';
 GO
 
--- Create login mapping for Oracle
 EXEC master.dbo.sp_addlinkedsrvlogin 
     @rmtsrvname = N'ORACLE_FINANCE',
     @useself = N'False',
@@ -43,15 +34,13 @@ GO
 SELECT * FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS
 
 -- ==========================================
--- STEP 2: Configure linked server to PostgreSQL
+-- Configure linked server to PostgreSQL
 -- ==========================================
 
--- Drop existing linked server if exists
 IF EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'POSTGRES_REMARKS')
     EXEC master.dbo.sp_dropserver @server=N'POSTGRES_REMARKS', @droplogins='droplogins';
 GO
 
--- Create linked server to PostgreSQL
 EXEC master.dbo.sp_addlinkedserver 
     @server = N'POSTGRES_REMARKS',
     @srvproduct = N'PostgreSQL',
@@ -59,7 +48,6 @@ EXEC master.dbo.sp_addlinkedserver
     @datasrc  = N'PostgreSQL30'; 
 GO
 
--- Create login mapping for PostgreSQL
 EXEC master.dbo.sp_addlinkedsrvlogin 
     @rmtsrvname = N'POSTGRES_REMARKS',
     @useself = N'False',
@@ -71,15 +59,13 @@ GO
 SELECT * FROM [POSTGRES_REMARKS].[remarks_system].[remarks_main].[remark]
 
 -- ==========================================
--- STEP 3: Configure linked server to another MSSQL (for replication)
+-- Configure linked server to another MSSQL (for replication)
 -- ==========================================
 
--- Drop existing linked server if exists
 IF EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'MSSQL_REPLICA')
     EXEC master.dbo.sp_dropserver @server=N'MSSQL_REPLICA', @droplogins='droplogins';
 GO
 
--- Create linked server to another MSSQL instance (adjust server name as needed)
 EXEC master.dbo.sp_addlinkedserver 
     @server = N'MSSQL_REPLICA',
     @srvproduct = N'',  
@@ -96,7 +82,7 @@ EXEC master.dbo.sp_addlinkedsrvlogin
 GO
 
 -- ==========================================
--- STEP 4: Configure linked server to Excel (example)
+-- Configure linked server to Excel 
 -- ==========================================
 
 IF EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'EXCEL_DATA')
@@ -112,10 +98,9 @@ EXEC master.dbo.sp_addlinkedserver
 GO
 
 -- ==========================================
--- STEP 5: Test linked server connections
+-- Test linked server connections
 -- ==========================================
 
--- Test Oracle connection
 BEGIN TRY
     SELECT 'Oracle connection test:' as Test;
     SELECT TOP 5 * FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS;
@@ -125,10 +110,8 @@ BEGIN CATCH
     PRINT 'Oracle linked server connection failed: ' + ERROR_MESSAGE();
 END CATCH;
 
--- Test PostgreSQL connection
 BEGIN TRY
     SELECT 'PostgreSQL connection test:' as Test;
-    -- Note: PostgreSQL syntax may need adjustment based on ODBC driver
     SELECT * FROM OPENQUERY(POSTGRES_REMARKS, 'SELECT COUNT(*) as remark_count FROM remarks_main.remark');
     PRINT 'PostgreSQL linked server connection successful!';
 END TRY
@@ -136,7 +119,6 @@ BEGIN CATCH
     PRINT 'PostgreSQL linked server connection failed: ' + ERROR_MESSAGE();
 END CATCH;
 
--- Test MSSQL replica connection
 BEGIN TRY
     SELECT 'MSSQL Replica connection test:' as Test;
     SELECT @@SERVERNAME as LocalServer, LinkedServer.ServerName as RemoteServer
@@ -148,13 +130,12 @@ BEGIN CATCH
 END CATCH;
 
 -- ==========================================
--- STEP 6: Create distributed views
+-- Create distributed views
 -- ==========================================
 
 USE SchoolDB;
 GO
 
--- Create view that combines data from all three databases
 CREATE OR ALTER VIEW vw_StudentCompleteInfo AS
 SELECT 
     s.id as StudentId,
@@ -173,7 +154,6 @@ FROM students s
     INNER JOIN parents p ON ps.parentId = p.id;
 GO
 
--- Create view that includes financial information from Oracle
 CREATE OR ALTER VIEW vw_StudentFinancialInfo AS
 SELECT 
     s.id as StudentId,
@@ -200,17 +180,15 @@ FROM students s
 GO
 
 -- ==========================================
--- STEP 7: Create stored procedures for distributed operations
+-- Create stored procedures for distributed operations
 -- ==========================================
 
--- Procedure to get complete student information from all databases
 CREATE OR ALTER PROCEDURE sp_GetCompleteStudentInfo
     @StudentId INT
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Get basic student info from MSSQL
     SELECT 
         s.id,
         s.firstName,
@@ -224,7 +202,6 @@ BEGIN
         INNER JOIN years y ON gr.yearId = y.id
     WHERE s.id = @StudentId;
 
-    -- Get financial info from Oracle
     BEGIN TRY
         SELECT 
             c.monthlyAmount,
@@ -241,7 +218,6 @@ BEGIN
         SELECT 'Financial data unavailable' as Error;
     END CATCH;
 
-    -- Get remarks from PostgreSQL
     BEGIN TRY
     SELECT  teacherId,
             remark,
@@ -263,28 +239,3 @@ BEGIN
 	END CATCH;
 END;
 GO
-
--- ==========================================
--- STEP 8: Configure distributed transactions
--- ==========================================
-
-CREATE OR ALTER FUNCTION fn_CheckDTCConfiguration()
-RETURNS VARCHAR(100)
-AS
-BEGIN
-    DECLARE @Result VARCHAR(100);
-
-    IF EXISTS (SELECT * FROM sys.configurations WHERE name = 'remote proc trans' AND value = 1)
-        SET @Result = 'DTC appears to be configured for distributed transactions';
-    ELSE
-        SET @Result = 'DTC may not be properly configured';
-
-    RETURN @Result;
-END;
-GO
-
--- Enable distributed transactions
-EXEC sp_configure 'remote proc trans', 1;
-RECONFIGURE;
-GO
-

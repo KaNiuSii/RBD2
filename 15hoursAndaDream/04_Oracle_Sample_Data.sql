@@ -1,13 +1,6 @@
 
--- ==========================================
--- Oracle Sample Data Script
--- School Management System - Finance Database
--- ==========================================
-
--- Connect as FINANCE_DB user
 CONNECT FINANCE_DB/Finance123;
 
--- Insert sample data into contracts table
 INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
 (1, 1, DATE '2024-01-01', DATE '2024-12-31', 500.00);
 
@@ -32,7 +25,6 @@ INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) V
 INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
 (8, 8, DATE '2024-01-01', DATE '2024-12-31', 650.00);
 
--- Insert sample data into payments table
 INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
 (1, DATE '2024-01-01', DATE '2024-01-01', 500.00, 'PAID');
 
@@ -69,7 +61,6 @@ INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES
 INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
 (5, DATE '2024-01-01', DATE '2024-01-01', 525.00, 'PAID');
 
--- Insert data into remote schemas for simulation
 CONNECT REMOTE_DB1/Remote123;
 
 INSERT INTO contracts_remote (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
@@ -95,7 +86,5 @@ INSERT INTO payment_summary (contractId, totalAmount, paymentCount, lastPaymentD
 INSERT INTO payment_summary (contractId, totalAmount, paymentCount, lastPaymentDate) VALUES 
 (5, 525.00, 1, DATE '2024-01-01');
 
--- Commit all changes
 COMMIT;
 
-PROMPT 'Oracle sample data inserted successfully!';

@@ -1,38 +1,26 @@
 
--- ==========================================
--- Distributed Queries and Operations Script
--- AD HOC Queries and Remote Data Access
--- ==========================================
-
 USE SchoolDB;
 GO
 
 -- ==========================================
--- SECTION 1: AD HOC Queries using OPENROWSET
+-- AD HOC OPENROWSET
 -- ==========================================
 
--- Example 1: MSSQL to MSSQL AD HOC query
+-- MSSQL to MSSQL AD HOC query
 SELECT 'AD HOC Query - MSSQL to MSSQL:' as QueryType;
 SELECT *
 FROM OPENROWSET('MSOLEDBSQL',
     'Server=localhost;Trusted_Connection=yes;',
     'SELECT TOP 5 * FROM SchoolDB.dbo.students') AS RemoteStudents;
 
--- Example 2: MSSQL to Oracle AD HOC query
---SELECT 'AD HOC Query - MSSQL to Oracle:' as QueryType;
---SELECT *
---FROM OPENROWSET('OraOLEDB.Oracle',
---    'PD19C;FINANCE_DB;Finance123',
---    'SELECT * FROM FINANCE_DB.CONTRACTS WHERE ROWNUM <= 5') AS OracleContracts;
-
--- Example 3: MSSQL to PostgreSQL AD HOC query (requires ODBC)
+-- MSSQL to PostgreSQL
 SELECT 'AD HOC Query - MSSQL to PostgreSQL:' as QueryType;
 SELECT *
 FROM OPENROWSET('MSDASQL',
     'DRIVER={PostgreSQL Unicode(x64)};SERVER=localhost;PORT=5432;DATABASE=remarks_system;UID=remarks_user;PWD=Remarks123;',
     'SELECT * FROM remarks_main.remark LIMIT 5') AS PostgresRemarks;
 
--- Example 4: MSSQL to Excel AD HOC query
+-- MSSQL to Excel AD HOC query
 SELECT 'AD HOC Query - MSSQL to Excel:' as QueryType;
 SELECT *
 FROM OPENROWSET('Microsoft.ACE.OLEDB.12.0',
@@ -40,10 +28,9 @@ FROM OPENROWSET('Microsoft.ACE.OLEDB.12.0',
     'SELECT * FROM [Arkusz1$]') AS ExcelData;
 
 -- ==========================================
--- SECTION 2: Multi-source Access Queries
+-- Multi-source Access Queries
 -- ==========================================
 
--- Example 5: Query combining data from MSSQL, Oracle, and PostgreSQL
 SELECT 'Multi-source Query:' as QueryType;
 WITH StudentBasic AS (
     SELECT 
@@ -77,12 +64,7 @@ FROM StudentBasic sb
     LEFT JOIN PostgresRemarks pr ON sb.id = pr.studentId
 ORDER BY sb.id;
 
--- ==========================================
--- SECTION 3: Pass-through Queries using OPENQUERY
--- ==========================================
-
--- Example 6: Pass-through query to Oracle
-SELECT 'Pass-through Query to Oracle:' as QueryType;
+SELECT 'Query to Oracle:' as QueryType;
 SELECT *
 FROM OPENQUERY(ORACLE_FINANCE,
     'SELECT 
@@ -94,8 +76,7 @@ FROM OPENQUERY(ORACLE_FINANCE,
         LEFT JOIN payments p ON c.id = p.contractId
      GROUP BY c.studentId, c.monthlyAmount') AS OracleFinanceData;
 
--- Example 7: Pass-through query to PostgreSQL
-SELECT 'Pass-through Query to PostgreSQL:' as QueryType;
+SELECT 'Query to PostgreSQL:' as QueryType;
 SELECT *
 FROM OPENQUERY(POSTGRES_REMARKS,
     'SELECT 
@@ -108,17 +89,17 @@ FROM OPENQUERY(POSTGRES_REMARKS,
      ORDER BY r.studentId, r.teacherId') AS PostgresRemarksData;
 
 -- ==========================================
--- SECTION 4: Remote Data Modification
+-- Remote Data Modification
 -- ==========================================
 
--- Example 8: Insert data into Oracle from MSSQL
+-- Insert data into Oracle from MSSQL
 SELECT 'Remote Data Modification - Insert to Oracle:' as Operation;
 INSERT INTO ORACLE_FINANCE..FINANCE_DB.CONTRACTS 
     (studentId, parentId, startDate, endDate, monthlyAmount)
 VALUES 
     (11, 1, '2024-01-01', '2024-12-31', 575.00);
 
--- Example 9: Update data in Oracle from MSSQL
+-- Update data in Oracle from MSSQL
 SELECT 'Remote Data Modification - Update Oracle:' as Operation;
 UPDATE ORACLE_FINANCE..FINANCE_DB.PAYMENTS
 SET status = 'PAID', paidDate = GETDATE()
@@ -127,16 +108,15 @@ WHERE contractId IN (
     WHERE studentId = 11
 ) AND status = 'PENDING';
 
--- Example 10: Insert data into PostgreSQL from MSSQL (using OPENQUERY)
+-- Insert data into PostgreSQL from MSSQL
 SELECT 'Remote Data Modification - Insert to PostgreSQL:' as Operation;
 SELECT * FROM OPENQUERY(POSTGRES_REMARKS, 'INSERT INTO remarks_main.remark (studentId, teacherId, value) 
             VALUES (11, 1, ''Student transferred from another system - good academic record'')');
 
 -- ==========================================
--- SECTION 5: Distributed Views and Procedures
+-- Distributed Views and Procedures
 -- ==========================================
 
--- Create a distributed view with data type casting
 CREATE OR ALTER VIEW vw_DistributedStudentData AS
 SELECT 
     CAST(s.id AS INT) as StudentId,
@@ -162,7 +142,6 @@ FROM students s
     ) postgres_data ON s.id = postgres_data.studentId;
 GO
 
--- Create a stored procedure for distributed operations
 CREATE OR ALTER PROCEDURE sp_DistributedStudentReport
     @StartDate DATE = NULL,
     @EndDate DATE = NULL
@@ -217,40 +196,9 @@ END;
 GO
 
 -- ==========================================
--- SECTION 6: Functions for Remote Data Verification
+-- Aggregation Function
 -- ==========================================
 
--- Function to verify remote data sources
-CREATE OR ALTER FUNCTION fn_VerifyRemoteConnections()
-RETURNS TABLE
-AS
-RETURN
-(
-    SELECT 
-        'Oracle' as DataSource,
-        CASE 
-            WHEN EXISTS (SELECT 1 FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS) 
-            THEN 'Connected' 
-            ELSE 'Failed' 
-        END as Status
-    UNION ALL
-    SELECT 
-        'PostgreSQL' as DataSource,
-        CASE 
-            WHEN EXISTS (
-                SELECT * FROM OPENQUERY(POSTGRES_REMARKS, 'SELECT 1 as test')
-            ) 
-            THEN 'Connected' 
-            ELSE 'Failed' 
-        END as Status
-);
-GO
-
--- ==========================================
--- SECTION 7: Aggregation Functions (Local and Remote)
--- ==========================================
-
--- Local aggregation with remote data
 CREATE OR ALTER PROCEDURE sp_AggregatedReport
 AS
 BEGIN

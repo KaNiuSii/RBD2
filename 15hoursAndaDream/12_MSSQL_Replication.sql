@@ -1,14 +1,8 @@
-
--- ==========================================
--- MSSQL Data Replication Configuration Script
--- School Management System - Replication Setup
--- ==========================================
-
 USE master;
 GO
 
 -- ==========================================
--- SECTION 1: Configure Distribution Database
+--  Configure Distribution Database
 -- ==========================================
 
 -- Enable replication
@@ -33,7 +27,7 @@ EXEC sp_adddistributiondb
 GO
 
 -- ==========================================
--- SECTION 2: Configure Publisher
+--  Configure Publisher
 -- ==========================================
 
 USE SchoolDB;
@@ -54,7 +48,7 @@ EXEC sp_replicationdboption
 GO
 
 -- ==========================================
--- SECTION 3: Create Transactional Replication Publication
+-- Create Transactional Replication Publication
 -- ==========================================
 
 -- Create transactional publication for student data

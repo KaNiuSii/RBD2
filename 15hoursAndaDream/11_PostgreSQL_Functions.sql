@@ -1,17 +1,7 @@
-
--- ==========================================
--- PostgreSQL Functions and Distributed Operations Script
--- School Management System - Remarks Database
--- ==========================================
-
--- Connect to the database
-\c remarksdb;
-
--- Set the search path to access all schemas
 SET search_path TO remarks_main, remarks_remote1, remarks_remote2, public;
 
 -- ==========================================
--- SECTION 1: PostgreSQL Functions
+-- PostgreSQL Functions
 -- ==========================================
 
 -- Function to get student remarks with pagination
@@ -54,7 +44,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Function to simulate FDW operations across schemas
 CREATE OR REPLACE FUNCTION remarks_main.fn_distributed_remark_search(
     p_search_text TEXT,
     p_include_archived BOOLEAN DEFAULT FALSE
@@ -148,7 +137,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ==========================================
--- SECTION 2: Advanced Cross-Schema Operations
+-- Advanced Cross-Schema Operations
 -- ==========================================
 
 -- Function to simulate distributed insert operation
@@ -254,7 +243,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ==========================================
--- SECTION 3: Simulated Foreign Data Wrapper Functions
+-- Simulated Foreign Data Wrapper Functions
 -- ==========================================
 
 -- Function to simulate connecting to external MSSQL data
@@ -269,8 +258,6 @@ RETURNS TABLE(
     external_source TEXT
 ) AS $$
 BEGIN
-    -- This simulates what an FDW connection to MSSQL would return
-    -- In reality, this would connect to the actual MSSQL database
     RETURN QUERY
     SELECT 
         s.id,
@@ -302,7 +289,6 @@ RETURNS TABLE(
     external_source TEXT
 ) AS $$
 BEGIN
-    -- This simulates what an FDW connection to Oracle would return
     RETURN QUERY
     SELECT 
         f.student_id,
@@ -373,7 +359,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ==========================================
--- SECTION 4: Stored Procedures for Complex Operations
+-- Stored Procedures for Complex Operations
 -- ==========================================
 
 -- Procedure to perform distributed backup operation
@@ -428,7 +414,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ==========================================
--- SECTION 5: Performance Monitoring Functions
+-- Performance Monitoring Functions
 -- ==========================================
 
 -- Function to monitor cross-schema query performance
@@ -482,7 +468,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- ==========================================
--- SECTION 6: Test the Functions
+-- Test the Functions
 -- ==========================================
 
 -- Test the distributed functions
@@ -493,15 +479,12 @@ DECLARE
 BEGIN
     RAISE NOTICE 'Testing PostgreSQL distributed functions...';
 
-    -- Test distributed insert
     SELECT remarks_main.fn_distributed_insert_remark(1, 1, 'Test remark from distributed function') INTO v_result;
     RAISE NOTICE 'Distributed insert result: %', v_result;
 
-    -- Test unified student view
     SELECT remarks_main.fn_unified_student_view(1) INTO v_result;
     RAISE NOTICE 'Unified student view: %', v_result::TEXT;
 
-    -- Test performance monitoring
     RAISE NOTICE 'Performance monitoring results:';
     FOR v_test_results IN 
         SELECT operation_type || ': ' || execution_time_ms::TEXT || 'ms (' || records_processed::TEXT || ' records)'
@@ -513,5 +496,3 @@ BEGIN
     RAISE NOTICE 'PostgreSQL distributed functions testing completed!';
 END;
 $$;
-
-\echo 'PostgreSQL functions and distributed operations completed successfully!'

@@ -1,17 +1,9 @@
-
--- ==========================================
--- Oracle Stored Procedures and Distributed Operations Script
--- School Management System - Finance Database
--- ==========================================
-
--- Connect as FINANCE_DB user
 CONNECT FINANCE_DB/Finance123;
 
 -- ==========================================
--- SECTION 1: Oracle Stored Procedures
+-- Oracle Stored Procedures
 -- ==========================================
 
--- Procedure to get contract information
 CREATE OR REPLACE PROCEDURE sp_GetContractInfo (
     p_student_id IN NUMBER,
     p_cursor OUT SYS_REFCURSOR
@@ -49,12 +41,10 @@ AS
     v_payment_date DATE;
     v_current_date DATE;
 BEGIN
-    -- Insert new contract
     INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount)
     VALUES (p_student_id, p_parent_id, p_start_date, p_end_date, p_monthly_amount)
     RETURNING id INTO p_contract_id;
 
-    -- Create payment schedule
     v_current_date := p_start_date;
 
     WHILE v_current_date <= p_end_date LOOP
@@ -143,7 +133,7 @@ END fn_CalculateOutstandingBalance;
 /
 
 -- ==========================================
--- SECTION 2: Simulated Distributed Views
+-- Simulated Distributed Views
 -- ==========================================
 
 -- Create view simulating distributed data access
@@ -172,7 +162,7 @@ SELECT
 FROM REMOTE_DB1.contracts_remote cr;
 
 -- ==========================================
--- SECTION 3: INSTEAD OF Triggers
+-- INSTEAD OF Triggers
 -- ==========================================
 
 -- Create INSTEAD OF trigger for the distributed view
@@ -180,7 +170,6 @@ CREATE OR REPLACE TRIGGER tr_DistributedFinanceData_Insert
 INSTEAD OF INSERT ON vw_DistributedFinanceData
 FOR EACH ROW
 BEGIN
-    -- Determine which schema to insert into based on business logic
     IF :NEW.studentId > 100 THEN
         -- Insert into remote schema
         INSERT INTO REMOTE_DB1.contracts_remote (studentId, parentId, startDate, endDate, monthlyAmount)
@@ -226,7 +215,7 @@ END;
 /
 
 -- ==========================================
--- SECTION 4: Cross-Schema Stored Procedures
+-- Cross-Schema Stored Procedures
 -- ==========================================
 
 -- Procedure to perform cross-schema operations
@@ -264,7 +253,7 @@ END sp_CrossSchemaFinanceReport;
 
 -- Procedure to sync data between schemas
 CREATE OR REPLACE PROCEDURE sp_SyncBetweenSchemas (
-    p_operation IN VARCHAR2 -- 'SYNC_TO_REMOTE' or 'SYNC_FROM_REMOTE'
+    p_operation IN VARCHAR2
 )
 AS
     v_count NUMBER := 0;
@@ -301,12 +290,10 @@ END sp_SyncBetweenSchemas;
 /
 
 -- ==========================================
--- SECTION 5: Package for Distributed Operations
+-- Package for Distributed Operations
 -- ==========================================
 
--- Create package specification
 CREATE OR REPLACE PACKAGE pkg_DistributedFinance AS
-    -- Public type definitions
     TYPE t_finance_record IS RECORD (
         contract_id NUMBER,
         student_id NUMBER,
@@ -318,7 +305,6 @@ CREATE OR REPLACE PACKAGE pkg_DistributedFinance AS
 
     TYPE t_finance_table IS TABLE OF t_finance_record;
 
-    -- Public procedure and function declarations
     FUNCTION fn_GetStudentFinanceData(p_student_id NUMBER) RETURN t_finance_table PIPELINED;
 
     PROCEDURE sp_DistributedPaymentProcessing(
@@ -336,7 +322,6 @@ CREATE OR REPLACE PACKAGE pkg_DistributedFinance AS
 END pkg_DistributedFinance;
 /
 
--- Create package body
 CREATE OR REPLACE PACKAGE BODY pkg_DistributedFinance AS
 
     FUNCTION fn_GetStudentFinanceData(p_student_id NUMBER) RETURN t_finance_table PIPELINED AS
@@ -468,7 +453,7 @@ END pkg_DistributedFinance;
 /
 
 -- ==========================================
--- SECTION 6: Test the Procedures
+-- Test the Procedures
 -- ==========================================
 SET SERVEROUTPUT ON;
 DECLARE

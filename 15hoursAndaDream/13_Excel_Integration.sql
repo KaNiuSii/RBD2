@@ -1,17 +1,6 @@
-
--- ==========================================
--- Excel Integration Script
--- School Management System - Excel Data Source
--- ==========================================
-
 USE SchoolDB;
 GO
 
--- ==========================================
--- SECTION 1: Enable Excel Data Access
--- ==========================================
-
--- Enable Ad Hoc Distributed Queries (if not already enabled)
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
 EXEC sp_configure 'Ad Hoc Distributed Queries', 1;
@@ -19,7 +8,7 @@ RECONFIGURE;
 GO
 
 -- ==========================================
--- SECTION 2: Create Sample Excel Data Structure
+-- Create Sample Excel Data Structure
 -- ==========================================
 
 -- Create a table to demonstrate Excel data import structure
@@ -45,7 +34,7 @@ CREATE TABLE StudentGradesStaging (
 );
 
 -- ==========================================
--- SECTION 3: Excel Reading Functions
+-- Excel Reading Functions
 -- ==========================================
 
 -- Procedure to read Excel file using OPENROWSET
@@ -91,7 +80,7 @@ END;
 GO
 
 -- ==========================================
--- SECTION 4: Excel Export Functions
+-- Excel Export Functions
 -- ==========================================
 
 CREATE OR ALTER PROCEDURE sp_ExportToExcelFormat
@@ -147,7 +136,7 @@ END;
 GO
 
 -- ==========================================
--- SECTION 5: Excel-based Analytical Queries
+-- Excel-based Analytical Queries
 -- ==========================================
 
 -- Procedure to create analytical report that can be exported to Excel
@@ -220,7 +209,7 @@ DECLARE @ReportQuery NVARCHAR(MAX) = '
     GROUP BY s.id, s.firstName, s.lastName, g.value, y.value
 ';
 
--- Ścieżka do pliku (należy podać pełną ścieżkę na serwerze SQL)
+-- Ścieżka do pliku
 DECLARE @OutputFilePath NVARCHAR(500) = 'C:\excel_exports\SchoolData.xlsx';
 
 -- Eksport danych

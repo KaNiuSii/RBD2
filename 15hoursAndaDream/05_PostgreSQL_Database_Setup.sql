@@ -1,37 +1,21 @@
 
--- ==========================================
--- PostgreSQL Database Setup Script
--- School Management System - Remarks Database
--- ==========================================
-
--- Create the Remarks database
-CREATE DATABASE remarksdb;
-
--- Connect to the database
-\c remarksdb;
-
--- Create schemas to simulate distributed environment
 CREATE SCHEMA remarks_main;
 CREATE SCHEMA remarks_remote1;
 CREATE SCHEMA remarks_remote2;
 
--- Create users for different schemas
 CREATE USER remarks_user WITH PASSWORD 'Remarks123';
 CREATE USER remote1_user WITH PASSWORD 'Remote123';
 CREATE USER remote2_user WITH PASSWORD 'Remote123';
 
--- Grant usage on schemas
 GRANT USAGE ON SCHEMA remarks_main TO remarks_user;
 GRANT USAGE ON SCHEMA remarks_remote1 TO remote1_user;
 GRANT USAGE ON SCHEMA remarks_remote2 TO remote2_user;
 
--- Grant cross-schema access
 GRANT USAGE ON SCHEMA remarks_remote1 TO remarks_user;
 GRANT USAGE ON SCHEMA remarks_remote2 TO remarks_user;
 GRANT USAGE ON SCHEMA remarks_main TO remote1_user;
 GRANT USAGE ON SCHEMA remarks_main TO remote2_user;
 
--- Create table in main schema
 CREATE TABLE remarks_main.remark (
     id SERIAL PRIMARY KEY,
     studentId INTEGER NOT NULL,
@@ -40,12 +24,10 @@ CREATE TABLE remarks_main.remark (
     created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create indexes for better performance
 CREATE INDEX idx_remark_student ON remarks_main.remark(studentId);
 CREATE INDEX idx_remark_teacher ON remarks_main.remark(teacherId);
 CREATE INDEX idx_remark_date ON remarks_main.remark(created_date);
 
--- Create tables in remote schemas for simulation
 CREATE TABLE remarks_remote1.remark_archive (
     id SERIAL PRIMARY KEY,
     studentId INTEGER NOT NULL,
@@ -63,23 +45,19 @@ CREATE TABLE remarks_remote2.remark_summary (
     last_remark_date TIMESTAMP
 );
 
--- Grant table permissions
 GRANT SELECT, INSERT, UPDATE, DELETE ON remarks_main.remark TO remarks_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON remarks_remote1.remark_archive TO remote1_user;
 GRANT SELECT, INSERT, UPDATE, DELETE ON remarks_remote2.remark_summary TO remote2_user;
 
--- Grant cross-schema table access
 GRANT SELECT ON remarks_remote1.remark_archive TO remarks_user;
 GRANT SELECT ON remarks_remote2.remark_summary TO remarks_user;
 GRANT SELECT ON remarks_main.remark TO remote1_user;
 GRANT SELECT ON remarks_main.remark TO remote2_user;
 
--- Grant sequence permissions
 GRANT USAGE, SELECT ON SEQUENCE remarks_main.remark_id_seq TO remarks_user;
 GRANT USAGE, SELECT ON SEQUENCE remarks_remote1.remark_archive_id_seq TO remote1_user;
 GRANT USAGE, SELECT ON SEQUENCE remarks_remote2.remark_summary_id_seq TO remote2_user;
 
--- Create views for simulating distributed operations
 CREATE VIEW remarks_main.distributed_remarks AS
 SELECT 
     r.id,
@@ -99,7 +77,6 @@ SELECT
     'REMOTE1' as source_schema
 FROM remarks_remote1.remark_archive ra;
 
--- Create function to simulate cross-schema operations
 CREATE OR REPLACE FUNCTION remarks_main.get_student_remarks(student_id INTEGER)
 RETURNS TABLE(
     remark_id INTEGER,
@@ -132,7 +109,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create a function to simulate Foreign Data Wrapper functionality
 CREATE OR REPLACE FUNCTION remarks_main.simulate_fdw_query(
     remote_schema TEXT,
     table_name TEXT,
@@ -144,7 +120,6 @@ RETURNS TABLE(
 DECLARE
     query_sql TEXT;
 BEGIN
-    -- This simulates what an FDW would do
     IF remote_schema = 'remarks_remote1' AND table_name = 'remark_archive' THEN
         IF student_id IS NOT NULL THEN
             RETURN QUERY
@@ -186,7 +161,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create materialized view for performance
 CREATE MATERIALIZED VIEW remarks_main.mv_student_remark_stats AS
 SELECT 
     studentId,
@@ -197,14 +171,11 @@ SELECT
 FROM remarks_main.remark
 GROUP BY studentId;
 
--- Create index on materialized view
 CREATE INDEX idx_mv_student_remark_stats_student ON remarks_main.mv_student_remark_stats(studentId);
 
--- Create trigger function for maintaining remark summary
 CREATE OR REPLACE FUNCTION remarks_main.update_remark_summary()
 RETURNS TRIGGER AS $$
 BEGIN
-    -- Update the summary table in remote schema
     INSERT INTO remarks_remote2.remark_summary (studentId, teacherId, remark_count, last_remark_date)
     VALUES (NEW.studentId, NEW.teacherId, 1, NEW.created_date)
     ON CONFLICT (studentId, teacherId) DO UPDATE SET
@@ -215,15 +186,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Create trigger (note: this requires unique constraint on studentId, teacherId)
--- First add the constraint
 ALTER TABLE remarks_remote2.remark_summary 
 ADD CONSTRAINT uk_student_teacher UNIQUE (studentId, teacherId);
 
--- Create the trigger
 CREATE TRIGGER tr_remark_summary_update
     AFTER INSERT ON remarks_main.remark
     FOR EACH ROW
     EXECUTE FUNCTION remarks_main.update_remark_summary();
 
-\echo 'PostgreSQL Remarks Database schema created successfully!'
