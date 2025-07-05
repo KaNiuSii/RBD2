@@ -57,6 +57,7 @@ EXEC master.dbo.sp_addlinkedsrvlogin
 GO
 
 SELECT * FROM [POSTGRES_REMARKS].[remarks_system].[remarks_main].[remark]
+SELECT * FROM [POSTGRES_REMARKS].[school].[remarks_main].[remark]
 
 -- ==========================================
 -- Configure linked server to another MSSQL (for replication)
