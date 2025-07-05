@@ -31,28 +31,6 @@ INSERT INTO remarks_remote1.remark_archive (studentId, teacherId, value, created
 (4, 1, 'Previous semester: Required extra help with fractions.', '2023-12-18 13:30:00', '2024-01-01 09:00:00'),
 (5, 3, 'Previous semester: Excellent lab partner and collaborator.', '2023-12-12 09:20:00', '2024-01-01 09:00:00');
 
-INSERT INTO remarks_remote2.remark_summary (studentId, teacherId, remark_count, last_remark_date) VALUES 
-(1, 1, 2, '2024-01-15 10:30:00'),
-(1, 2, 2, '2024-01-15 14:20:00'),
-(2, 1, 2, '2024-01-16 11:15:00'),
-(2, 3, 1, '2024-01-16 13:45:00'),
-(3, 2, 2, '2024-01-17 16:45:00'),
-(3, 4, 1, '2024-01-17 10:20:00'),
-(4, 1, 2, '2024-01-18 13:30:00'),
-(4, 5, 1, '2024-01-18 15:00:00'),
-(5, 2, 1, '2024-01-19 09:20:00'),
-(5, 3, 1, '2024-01-19 11:30:00'),
-(6, 1, 1, '2024-01-20 10:15:00'),
-(6, 4, 1, '2024-01-20 14:45:00'),
-(7, 2, 1, '2024-01-21 08:30:00'),
-(7, 3, 1, '2024-01-21 12:15:00'),
-(8, 1, 1, '2024-01-22 09:45:00'),
-(8, 5, 1, '2024-01-22 13:20:00'),
-(9, 2, 1, '2024-01-23 10:30:00'),
-(9, 4, 1, '2024-01-23 15:15:00'),
-(10, 1, 1, '2024-01-24 11:20:00'),
-(10, 3, 1, '2024-01-24 14:30:00');
-
 REFRESH MATERIALIZED VIEW remarks_main.mv_student_remark_stats;
 
 INSERT INTO remarks_main.remark (studentId, teacherId, value) VALUES 
