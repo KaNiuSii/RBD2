@@ -37,7 +37,7 @@ GO
 EXEC sp_adddistpublisher 
     @publisher = @@SERVERNAME,
     @distribution_db = 'DistributionDB',
-    @working_directory = 'C:\ReplData';
+    @working_directory = 'D:\Rbd\ReplData';
 GO
 
 -- Enable database for replication

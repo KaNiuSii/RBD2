@@ -34,6 +34,13 @@ FROM OPENROWSET('Microsoft.ACE.OLEDB.12.0',
     'Excel 12.0;Database=C:\excel_exports\SchoolData.xlsx;HDR=YES',
     'SELECT * FROM [Arkusz1$]') AS ExcelData;
 
+-- MSSQL to Excel AD HOC query
+SELECT 'AD HOC Query - MSSQL to Excel:' as QueryType;
+SELECT *
+FROM OPENROWSET('Microsoft.ACE.OLEDB.12.0',
+    'Excel 12.0;Database=D:\Rbd\SchoolData.xlsx;HDR=YES',
+    'SELECT * FROM [Arkusz1$]') AS ExcelData;
+
 -- ==========================================
 -- Multi-source Access Queries
 -- ==========================================
