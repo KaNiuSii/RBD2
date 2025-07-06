@@ -20,6 +20,13 @@ FROM OPENROWSET('MSDASQL',
     'DRIVER={PostgreSQL Unicode(x64)};SERVER=localhost;PORT=5432;DATABASE=remarks_system;UID=remarks_user;PWD=Remarks123;',
     'SELECT * FROM remarks_main.remark LIMIT 5') AS PostgresRemarks;
 
+-- MSSQL to PostgreSQL
+SELECT 'AD HOC Query - MSSQL to PostgreSQL:' as QueryType;
+SELECT *
+FROM OPENROWSET('MSDASQL',
+    'DRIVER={PostgreSQL Unicode(x64)};SERVER=localhost;PORT=5432;DATABASE=school;UID=remarks_user;PWD=Remarks123;',
+    'SELECT * FROM remarks_main.remark LIMIT 5') AS PostgresRemarks;
+
 -- MSSQL to Excel AD HOC query
 SELECT 'AD HOC Query - MSSQL to Excel:' as QueryType;
 SELECT *
