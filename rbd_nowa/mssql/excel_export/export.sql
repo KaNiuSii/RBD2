@@ -8,14 +8,9 @@ BEGIN
 
     -- 1. Arkusz Student$
     SET @sql = '
-        DELETE FROM OPENROWSET(
-            ''Microsoft.ACE.OLEDB.12.0'',
-            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES'',
-            ''SELECT * FROM [Student$]''
-        );
         INSERT INTO OPENROWSET(
             ''Microsoft.ACE.OLEDB.12.0'',
-            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES'',
+            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES;IMEX=0'',
             ''SELECT id, groupId, firstName, lastName, birthday, genderId FROM [Student$]''
         )
         SELECT id, groupId, firstName, lastName, birthday, genderId
@@ -26,14 +21,9 @@ BEGIN
 
     -- 2. Arkusz ContractsPayments$
     SET @sql = '
-        DELETE FROM OPENROWSET(
-            ''Microsoft.ACE.OLEDB.12.0'',
-            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES'',
-            ''SELECT * FROM [ContractsPayments$]''
-        );
         INSERT INTO OPENROWSET(
             ''Microsoft.ACE.OLEDB.12.0'',
-            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES'',
+            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES;IMEX=0'',
             ''SELECT contractId, studentId, parentId, startDate, endDate, monthlyAmount, paymentId, dueDate, paidDate, amount, status FROM [ContractsPayments$]''
         )
         SELECT
@@ -54,36 +44,32 @@ BEGIN
     ';
     EXEC(@sql);
 
-    -- 3. Arkusz Remarks$ (dwa bloki, bo DELETE musi być osobno!)
+    -- 3. Arkusz Remarks$
     DECLARE @pgSql NVARCHAR(MAX);
 
--- Zbuduj query do Postgresa literalnie
-SET @pgSql = 
-    'SELECT id, studentId, teacherId, value, created_date FROM remarks_main.remark WHERE studentId = ' 
-    + CAST(@StudentId AS VARCHAR);
+    SET @pgSql = 
+        'SELECT id, studentId, teacherId, value, created_date FROM remarks_main.remark WHERE studentId = ' 
+        + CAST(@StudentId AS VARCHAR);
 
--- Teraz zbuduj całość, dając 3 apostrofy przed i po!
-SET @sql = '
-    INSERT INTO OPENROWSET(
-        ''Microsoft.ACE.OLEDB.12.0'',
-        ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES'',
-        ''SELECT id, studentId, teacherId, value, created_date FROM [Remarks$]''
-    )
-    SELECT 
-        id,
-        studentId,
-        teacherId,
-        value,
-        created_date
-    FROM OPENQUERY(POSTGRES_REMARKS,
-        '''' + REPLACE(@pgSql, '''', '''''') + ''''
-    );
-';
-EXEC(@sql);
+    SET @sql = '
+        INSERT INTO OPENROWSET(
+            ''Microsoft.ACE.OLEDB.12.0'',
+            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES;IMEX=0'',
+            ''SELECT id, studentId, teacherId, value, created_date FROM [Remarks$]''
+        )
+        SELECT 
+            id,
+            studentId,
+            teacherId,
+            value,
+            created_date
+        FROM OPENQUERY(POSTGRES_REMARKS, ''' + REPLACE(@pgSql, '''', '''''') + ''')
+    ';
 
-    PRINT 'Eksport zakończony!';
+    EXEC(@sql);
+
+    PRINT 'Eksport zakonczony!';
 END
 GO
 
-
-EXEC sp_ExportStudentToExcel @StudentId = 5;
+EXEC sp_ExportStudentToExcel @StudentId = 1;
