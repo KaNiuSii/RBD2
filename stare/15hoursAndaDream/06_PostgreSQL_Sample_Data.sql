@@ -50,4 +50,3 @@ SELECT * FROM remarks_main.mv_student_remark_stats ORDER BY studentId LIMIT 5;
 SELECT 'Distributed view results:' as info;
 SELECT * FROM remarks_main.distributed_remarks WHERE studentId = 1 ORDER BY created_date;
 
-\echo 'PostgreSQL sample data inserted successfully!'
