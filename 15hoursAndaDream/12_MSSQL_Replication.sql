@@ -12,6 +12,21 @@ EXEC sp_configure 'Agent XPs', 1;
 RECONFIGURE;
 GO
 
+-- EXEC sp_dropdistributor;
+-- GO
+
+-- SELECT spid FROM sys.sysprocesses WHERE dbid = db_id('DistributionDB')
+
+-- SELECT spid FROM sys.sysprocesses WHERE dbid = db_id('distribution')
+
+-- EXEC sp_dropdistributor @no_checks = 1, @ignore_distributor = 1
+-- GO
+
+
+-- sp_removedbreplication 'DistributionDB'
+-- GO
+
+
 -- Configure the server as a distributor
 EXEC sp_adddistributor 
     @distributor = @@SERVERNAME,
@@ -126,3 +141,7 @@ BEGIN
     DEALLOCATE snapshot_cursor;
 END;
 GO
+
+
+-- RUN ON SECOND SQL SERVER INSTANCE
+
