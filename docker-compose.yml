@@ -5,27 +5,6 @@ version: "3.9"
 ############################################
 services:
   # ──────────────────────────────
-  # SQL Server #1  (Publisher / główny)
-  # ──────────────────────────────
-  sql1:
-    build:
-      context: ./sqlserver          # patrz Dockerfile poniżej
-      dockerfile: Dockerfile
-    container_name: sql1
-    hostname: sql1                  # ułatwia DB-linki
-    environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=Str0ng!Passw0rd
-      - MSSQL_PID=Developer
-    ports:
-      - "1433:1433"                 # host→container
-    volumes:
-      - sql1-data:/var/opt/mssql
-      - ./init/sql1:/docker-entrypoint-initdb.d
-    networks:
-      - rbd-net
-
-  # ──────────────────────────────
   # SQL Server #2  (Subscriber / archiwum)
   # ──────────────────────────────
   sql2:
@@ -47,30 +26,7 @@ services:
       - rbd-net
 
   # ──────────────────────────────
-  # Oracle Database 21c XE
-  # (gvenzl/oracle-xe jest legalnym, darmowym
-  #  obrazem do celów edukacyjnych)
-  # ──────────────────────────────
-  oracle:
-    image: gvenzl/oracle-xe:21-slim
-    container_name: oracle
-    hostname: oracle
-    environment:
-      - ORACLE_PASSWORD=oracle          # SYS / SYSTEM / APP_USER
-      - APP_USER=app
-      - APP_USER_PASSWORD=app
-    ports:
-      - "1521:1521"   # listener
-      - "5500:5500"   # APEX / OEM
-    volumes:
-      - oracle-data:/opt/oracle/oradata
-      - ./init/oracle:/container-entrypoint-initdb.d
-    networks:
-      - rbd-net
-
-  # ──────────────────────────────
-  # PostgreSQL 16  (zamiennik Access/Excel,
-  #                 staging dla danych z Mongo)
+  # PostgreSQL 16  
   # ──────────────────────────────
   postgres:
     image: postgres:16
@@ -85,24 +41,6 @@ services:
     volumes:
       - postgres-data:/var/lib/postgresql/data
       - ./init/postgres:/docker-entrypoint-initdb.d
-    networks:
-      - rbd-net
-
-  # ──────────────────────────────
-  # MongoDB 6  (e-portfolio, JSON-heavy)
-  # ──────────────────────────────
-  mongo:
-    image: mongo:6
-    container_name: mongo
-    hostname: mongo
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=root
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-      - ./init/mongo:/docker-entrypoint-initdb.d
     networks:
       - rbd-net
 
@@ -130,8 +68,5 @@ networks:
     driver: bridge
 
 volumes:
-  sql1-data:
   sql2-data:
-  oracle-data:
   postgres-data:
-  mongo-data:

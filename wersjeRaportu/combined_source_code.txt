@@ -1,0 +1,2927 @@
+
+--- Start of database_setups\main_mssql\create.sql ---
+
+CREATE DATABASE SchoolDB;
+GO
+
+USE SchoolDB;
+GO
+
+CREATE TABLE genders (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    value nvarchar(50) NOT NULL
+);
+
+CREATE TABLE years (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    value int NOT NULL
+);
+
+CREATE TABLE teachers (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    firstName nvarchar(100) NOT NULL,
+    lastName nvarchar(100) NOT NULL,
+    birthday date,
+    phoneNumber nvarchar(20),
+    email nvarchar(100),
+    additionalInfo nvarchar(500)
+);
+
+CREATE TABLE parents (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    firstName nvarchar(100) NOT NULL,
+    lastName nvarchar(100) NOT NULL,
+    phoneNumber nvarchar(20),
+    email nvarchar(100)
+);
+
+CREATE TABLE groups (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    yearId int NOT NULL,
+    home_teacher_id int NOT NULL,
+    FOREIGN KEY (yearId) REFERENCES years(id),
+    FOREIGN KEY (home_teacher_id) REFERENCES teachers(id)
+);
+
+CREATE TABLE students (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    groupId int NOT NULL,
+    firstName nvarchar(100) NOT NULL,
+    lastName nvarchar(100) NOT NULL,
+    birthday date,
+    genderId int,
+    FOREIGN KEY (groupId) REFERENCES groups(id),
+    FOREIGN KEY (genderId) REFERENCES genders(id)
+);
+
+CREATE TABLE parents_students (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    parentId int NOT NULL,
+    studentId int NOT NULL,
+    FOREIGN KEY (parentId) REFERENCES parents(id),
+    FOREIGN KEY (studentId) REFERENCES students(id)
+);
+
+CREATE TABLE classrooms (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    location nvarchar(100) NOT NULL
+);
+
+CREATE TABLE subjects (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    shortName nvarchar(10) NOT NULL,
+    longName nvarchar(100) NOT NULL
+);
+
+CREATE TABLE marks (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    subjectId int NOT NULL,
+    studentId int NOT NULL,
+    value int NOT NULL,
+    comment nvarchar(500),
+    weight int DEFAULT 1,
+    FOREIGN KEY (subjectId) REFERENCES subjects(id),
+    FOREIGN KEY (studentId) REFERENCES students(id)
+);
+
+CREATE TABLE hours (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    start_hour int NOT NULL,
+    start_minutes int NOT NULL,
+    end_hour int NOT NULL,
+    end_minutes int NOT NULL
+);
+
+CREATE TABLE days (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    value nvarchar(20) NOT NULL
+);
+
+CREATE TABLE lessons (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    teacherId int NOT NULL,
+    subjectId int NOT NULL,
+    groupId int NOT NULL,
+    hourId int NOT NULL,
+    classroomId int NOT NULL,
+    dayId int NOT NULL,
+    FOREIGN KEY (teacherId) REFERENCES teachers(id),
+    FOREIGN KEY (subjectId) REFERENCES subjects(id),
+    FOREIGN KEY (groupId) REFERENCES groups(id),
+    FOREIGN KEY (hourId) REFERENCES hours(id),
+    FOREIGN KEY (classroomId) REFERENCES classrooms(id),
+    FOREIGN KEY (dayId) REFERENCES days(id)
+);
+
+CREATE TABLE attendances (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    dateTimeChecked datetime NOT NULL,
+    lessonId int NOT NULL,
+    FOREIGN KEY (lessonId) REFERENCES lessons(id)
+);
+
+CREATE TABLE attendance_student (
+    id int IDENTITY(1,1) PRIMARY KEY,
+    attendanceId int NOT NULL,
+    studentId int NOT NULL,
+    present bit NOT NULL,
+    FOREIGN KEY (attendanceId) REFERENCES attendances(id),
+    FOREIGN KEY (studentId) REFERENCES students(id)
+);
+
+
+
+--- End of database_setups\main_mssql\create.sql ---
+
+--- Start of database_setups\main_mssql\data.sql ---
+
+
+USE SchoolDB;
+GO
+
+INSERT INTO genders (value) VALUES 
+('Male'), ('Female'), ('Other');
+
+INSERT INTO years (value) VALUES 
+(2023), (2024), (2025);
+
+INSERT INTO teachers (firstName, lastName, birthday, phoneNumber, email, additionalInfo) VALUES 
+('John', 'Smith', '1980-05-15', '123-456-7890', 'john.smith@school.edu', 'Mathematics Teacher'),
+('Mary', 'Johnson', '1975-08-22', '123-456-7891', 'mary.johnson@school.edu', 'English Teacher'),
+('David', 'Brown', '1982-03-10', '123-456-7892', 'david.brown@school.edu', 'Science Teacher'),
+('Sarah', 'Davis', '1978-11-30', '123-456-7893', 'sarah.davis@school.edu', 'History Teacher'),
+('Michael', 'Wilson', '1985-07-05', '123-456-7894', 'michael.wilson@school.edu', 'Physical Education');
+
+INSERT INTO parents (firstName, lastName, phoneNumber, email) VALUES 
+('Robert', 'Anderson', '555-0001', 'robert.anderson@email.com'),
+('Jennifer', 'Taylor', '555-0002', 'jennifer.taylor@email.com'),
+('William', 'Thomas', '555-0003', 'william.thomas@email.com'),
+('Lisa', 'Jackson', '555-0004', 'lisa.jackson@email.com'),
+('James', 'White', '555-0005', 'james.white@email.com'),
+('Patricia', 'Harris', '555-0006', 'patricia.harris@email.com'),
+('Richard', 'Martin', '555-0007', 'richard.martin@email.com'),
+('Barbara', 'Thompson', '555-0008', 'barbara.thompson@email.com');
+
+INSERT INTO groups (yearId, home_teacher_id) VALUES 
+(1, 1), (1, 2), (2, 3), (2, 4), (3, 5);
+
+INSERT INTO students (groupId, firstName, lastName, birthday, genderId) VALUES 
+(1, 'Emma', 'Anderson', '2005-03-15', 2),
+(1, 'Liam', 'Johnson', '2005-07-22', 1),
+(1, 'Olivia', 'Williams', '2005-09-10', 2),
+(2, 'Noah', 'Brown', '2006-01-05', 1),
+(2, 'Ava', 'Jones', '2006-04-18', 2),
+(3, 'William', 'Garcia', '2007-06-30', 1),
+(3, 'Sophia', 'Miller', '2007-08-12', 2),
+(4, 'James', 'Davis', '2008-02-25', 1),
+(4, 'Isabella', 'Rodriguez', '2008-05-08', 2),
+(5, 'Benjamin', 'Martinez', '2009-09-14', 1);
+
+INSERT INTO parents_students (parentId, studentId) VALUES 
+(1, 1), (2, 2), (3, 3), (4, 4), (5, 5),
+(6, 6), (7, 7), (8, 8), (1, 9), (2, 10);
+
+INSERT INTO classrooms (location) VALUES 
+('Room 101'), ('Room 102'), ('Room 103'), ('Room 201'), ('Room 202'), 
+('Laboratory A'), ('Laboratory B'), ('Gymnasium'), ('Library'), ('Auditorium');
+
+INSERT INTO subjects (shortName, longName) VALUES 
+('MATH', 'Mathematics'),
+('ENG', 'English Literature'),
+('SCI', 'Science'),
+('HIST', 'History'),
+('PE', 'Physical Education'),
+('ART', 'Art'),
+('MUS', 'Music'),
+('COMP', 'Computer Science');
+
+INSERT INTO marks (subjectId, studentId, value, comment, weight) VALUES 
+(1, 1, 85, 'Good understanding of algebra', 1),
+(1, 2, 92, 'Excellent problem-solving skills', 1),
+(2, 1, 78, 'Needs improvement in writing', 1),
+(2, 2, 88, 'Strong analytical reading', 1),
+(3, 3, 95, 'Outstanding lab work', 2),
+(3, 4, 82, 'Good theoretical knowledge', 1),
+(4, 5, 90, 'Excellent essay writing', 2),
+(5, 6, 87, 'Great athletic performance', 1);
+
+INSERT INTO hours (start_hour, start_minutes, end_hour, end_minutes) VALUES 
+(8, 0, 8, 45),
+(9, 0, 9, 45),
+(10, 0, 10, 45),
+(11, 0, 11, 45),
+(12, 0, 12, 45),
+(13, 0, 13, 45),
+(14, 0, 14, 45),
+(15, 0, 15, 45);
+
+INSERT INTO days (value) VALUES 
+('Monday'), ('Tuesday'), ('Wednesday'), ('Thursday'), ('Friday');
+
+INSERT INTO lessons (teacherId, subjectId, groupId, hourId, classroomId, dayId) VALUES 
+(1, 1, 1, 1, 1, 1),
+(2, 2, 1, 2, 2, 1),
+(3, 3, 2, 3, 6, 2),
+(4, 4, 2, 4, 3, 2),
+(5, 5, 3, 5, 8, 3),
+(1, 1, 2, 1, 1, 4),
+(2, 2, 3, 2, 2, 4),
+(3, 3, 1, 3, 7, 5);
+
+INSERT INTO attendances (dateTimeChecked, lessonId) VALUES 
+('2024-01-15 08:00:00', 1),
+('2024-01-15 09:00:00', 2),
+('2024-01-16 10:00:00', 3),
+('2024-01-16 11:00:00', 4),
+('2024-01-17 12:00:00', 5);
+
+INSERT INTO attendance_student (attendanceId, studentId, present) VALUES 
+(1, 1, 1), (1, 2, 1), (1, 3, 0),
+(2, 1, 1), (2, 2, 1), (2, 3, 1),
+(3, 4, 1), (3, 5, 0),
+(4, 4, 1), (4, 5, 1),
+(5, 6, 1), (5, 7, 1);
+
+
+
+--- End of database_setups\main_mssql\data.sql ---
+
+--- Start of database_setups\oracle\1_user.sql ---
+
+CREATE USER FINANCE_DB IDENTIFIED BY Finance123
+DEFAULT TABLESPACE USERS
+TEMPORARY TABLESPACE TEMP;
+
+CREATE USER REMOTE_DB1 IDENTIFIED BY Remote123
+DEFAULT TABLESPACE USERS
+TEMPORARY TABLESPACE TEMP;
+
+CREATE USER REMOTE_DB2 IDENTIFIED BY Remote123
+DEFAULT TABLESPACE USERS
+TEMPORARY TABLESPACE TEMP;
+
+ALTER USER FINANCE_DB QUOTA UNLIMITED ON USERS;
+ALTER USER REMOTE_DB1 QUOTA UNLIMITED ON USERS;
+ALTER USER REMOTE_DB2 QUOTA UNLIMITED ON USERS;
+
+GRANT CONNECT, RESOURCE TO FINANCE_DB;
+GRANT CONNECT, RESOURCE TO REMOTE_DB1;
+GRANT CONNECT, RESOURCE TO REMOTE_DB2;
+
+GRANT CREATE DATABASE LINK TO FINANCE_DB;
+GRANT CREATE SYNONYM TO FINANCE_DB;
+GRANT CREATE VIEW TO FINANCE_DB;
+GRANT CREATE MATERIALIZED VIEW TO FINANCE_DB;
+GRANT CREATE SEQUENCE TO FINANCE_DB;
+GRANT CREATE TRIGGER TO FINANCE_DB;
+GRANT CREATE PROCEDURE TO FINANCE_DB;
+
+GRANT CREATE DATABASE LINK TO REMOTE_DB1;
+GRANT CREATE SYNONYM TO REMOTE_DB1;
+GRANT CREATE VIEW TO REMOTE_DB1;
+GRANT CREATE PROCEDURE TO REMOTE_DB1;
+
+GRANT CREATE DATABASE LINK TO REMOTE_DB2;
+GRANT CREATE SYNONYM TO REMOTE_DB2;
+GRANT CREATE VIEW TO REMOTE_DB2;
+GRANT CREATE PROCEDURE TO REMOTE_DB2;
+
+--- End of database_setups\oracle\1_user.sql ---
+
+--- Start of database_setups\oracle\2_finance_create.sql ---
+
+
+CREATE TABLE contracts (
+    id NUMBER PRIMARY KEY,
+    studentId NUMBER NOT NULL,
+    parentId NUMBER NOT NULL,
+    startDate DATE NOT NULL,
+    endDate DATE,
+    monthlyAmount NUMBER(10,2) NOT NULL
+);
+
+CREATE TABLE payments (
+    id NUMBER PRIMARY KEY,
+    contractId NUMBER NOT NULL,
+    dueDate DATE NOT NULL,
+    paidDate DATE,
+    amount NUMBER(10,2) NOT NULL,
+    status VARCHAR2(20) DEFAULT 'PENDING',
+    CONSTRAINT fk_payments_contract FOREIGN KEY (contractId) REFERENCES contracts(id)
+);
+
+CREATE SEQUENCE contract_seq START WITH 1 INCREMENT BY 1;
+CREATE SEQUENCE payment_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER contract_trigger
+BEFORE INSERT ON contracts
+FOR EACH ROW
+BEGIN
+    SELECT contract_seq.NEXTVAL INTO :NEW.id FROM dual;
+END;
+/
+
+CREATE OR REPLACE TRIGGER payment_trigger
+BEFORE INSERT ON payments
+FOR EACH ROW
+BEGIN
+    SELECT payment_seq.NEXTVAL INTO :NEW.id FROM dual;
+END;
+/
+
+CREATE INDEX idx_contracts_student ON contracts(studentId);
+CREATE INDEX idx_contracts_parent ON contracts(parentId);
+CREATE INDEX idx_payments_contract ON payments(contractId);
+CREATE INDEX idx_payments_status ON payments(status);
+
+--- End of database_setups\oracle\2_finance_create.sql ---
+
+--- Start of database_setups\oracle\3_remote_db1.sql ---
+
+
+CREATE TABLE contracts_remote (
+    id NUMBER PRIMARY KEY,
+    studentId NUMBER NOT NULL,
+    parentId NUMBER NOT NULL,
+    startDate DATE NOT NULL,
+    endDate DATE,
+    monthlyAmount NUMBER(10,2) NOT NULL
+);
+
+CREATE SEQUENCE contract_remote_seq START WITH 1000 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER contract_remote_trigger
+BEFORE INSERT ON contracts_remote
+FOR EACH ROW
+BEGIN
+    SELECT contract_remote_seq.NEXTVAL INTO :NEW.id FROM dual;
+END;
+/
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON contracts_remote
+    TO FINANCE_DB;
+
+--- End of database_setups\oracle\3_remote_db1.sql ---
+
+--- Start of database_setups\oracle\4_remote_db2.sql ---
+
+
+CREATE TABLE payment_summary (
+    id NUMBER PRIMARY KEY,
+    contractId NUMBER NOT NULL,
+    totalAmount NUMBER(10,2) NOT NULL,
+    paymentCount NUMBER NOT NULL,
+    lastPaymentDate DATE
+);
+
+CREATE SEQUENCE payment_summary_seq START WITH 1 INCREMENT BY 1;
+
+CREATE OR REPLACE TRIGGER payment_summary_trigger
+BEFORE INSERT ON payment_summary
+FOR EACH ROW
+BEGIN
+    SELECT payment_summary_seq.NEXTVAL INTO :NEW.id FROM dual;
+END;
+/
+
+GRANT SELECT, INSERT, UPDATE, DELETE
+    ON payment_summary
+    TO FINANCE_DB;
+
+--- End of database_setups\oracle\4_remote_db2.sql ---
+
+--- Start of database_setups\oracle\5_finance_synonyms.sql ---
+
+CREATE SYNONYM remote_contracts FOR REMOTE_DB1.contracts_remote;
+CREATE SYNONYM remote_payment_summary FOR REMOTE_DB2.payment_summary;
+
+GRANT SELECT, INSERT, UPDATE, DELETE ON contracts TO REMOTE_DB1;
+GRANT SELECT, INSERT, UPDATE, DELETE ON payments TO REMOTE_DB1;
+GRANT SELECT, INSERT, UPDATE, DELETE ON contracts TO REMOTE_DB2;
+GRANT SELECT, INSERT, UPDATE, DELETE ON payments TO REMOTE_DB2;
+
+
+--- End of database_setups\oracle\5_finance_synonyms.sql ---
+
+--- Start of database_setups\oracle\6_finance_data.sql ---
+
+
+INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(1, 1, DATE '2024-01-01', DATE '2024-12-31', 500.00);
+
+INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(2, 2, DATE '2024-01-01', DATE '2024-12-31', 550.00);
+
+INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(3, 3, DATE '2024-01-01', DATE '2024-12-31', 500.00);
+
+INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(4, 4, DATE '2024-01-01', DATE '2024-12-31', 600.00);
+
+INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(5, 5, DATE '2024-01-01', DATE '2024-12-31', 525.00);
+
+INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(6, 6, DATE '2024-01-01', DATE '2024-12-31', 575.00);
+
+INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(7, 7, DATE '2024-01-01', DATE '2024-12-31', 500.00);
+
+INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(8, 8, DATE '2024-01-01', DATE '2024-12-31', 650.00);
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(1, DATE '2024-01-01', DATE '2024-01-01', 500.00, 'PAID');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(1, DATE '2024-02-01', DATE '2024-02-01', 500.00, 'PAID');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(1, DATE '2024-03-01', DATE '2024-03-01', 500.00, 'PAID');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(1, DATE '2024-04-01', NULL, 500.00, 'PENDING');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(2, DATE '2024-01-01', DATE '2024-01-01', 550.00, 'PAID');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(2, DATE '2024-02-01', DATE '2024-02-03', 550.00, 'PAID');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(2, DATE '2024-03-01', NULL, 550.00, 'OVERDUE');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(3, DATE '2024-01-01', DATE '2024-01-01', 500.00, 'PAID');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(3, DATE '2024-02-01', DATE '2024-02-01', 500.00, 'PAID');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(4, DATE '2024-01-01', DATE '2024-01-01', 600.00, 'PAID');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(4, DATE '2024-02-01', NULL, 600.00, 'PENDING');
+
+INSERT INTO payments (contractId, dueDate, paidDate, amount, status) VALUES 
+(5, DATE '2024-01-01', DATE '2024-01-01', 525.00, 'PAID');
+
+
+COMMIT;
+
+--- End of database_setups\oracle\6_finance_data.sql ---
+
+--- Start of database_setups\oracle\7_remote_db1_data.sql ---
+
+
+INSERT INTO contracts_remote (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(9, 1, DATE '2024-01-01', DATE '2024-12-31', 500.00);
+
+INSERT INTO contracts_remote (studentId, parentId, startDate, endDate, monthlyAmount) VALUES 
+(10, 2, DATE '2024-01-01', DATE '2024-12-31', 550.00);
+
+
+COMMIT;
+
+--- End of database_setups\oracle\7_remote_db1_data.sql ---
+
+--- Start of database_setups\oracle\8_remote_db2_data.sql ---
+
+
+INSERT INTO payment_summary (contractId, totalAmount, paymentCount, lastPaymentDate) VALUES 
+(1, 1500.00, 3, DATE '2024-03-01');
+
+INSERT INTO payment_summary (contractId, totalAmount, paymentCount, lastPaymentDate) VALUES 
+(2, 1100.00, 2, DATE '2024-02-03');
+
+INSERT INTO payment_summary (contractId, totalAmount, paymentCount, lastPaymentDate) VALUES 
+(3, 1000.00, 2, DATE '2024-02-01');
+
+INSERT INTO payment_summary (contractId, totalAmount, paymentCount, lastPaymentDate) VALUES 
+(4, 600.00, 1, DATE '2024-01-01');
+
+INSERT INTO payment_summary (contractId, totalAmount, paymentCount, lastPaymentDate) VALUES 
+(5, 525.00, 1, DATE '2024-01-01');
+
+
+COMMIT;
+
+--- End of database_setups\oracle\8_remote_db2_data.sql ---
+
+--- Start of database_setups\postgres\create.sql ---
+
+CREATE SCHEMA remarks_main;
+
+CREATE USER remarks_user WITH PASSWORD 'Remarks123';
+
+GRANT USAGE ON SCHEMA remarks_main TO remarks_user;
+
+CREATE TABLE remarks_main.remark (
+    id SERIAL PRIMARY KEY,
+    studentId INTEGER NOT NULL,
+    teacherId INTEGER NOT NULL,
+    value TEXT NOT NULL,
+    created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_remark_student ON remarks_main.remark(studentId);
+CREATE INDEX idx_remark_teacher ON remarks_main.remark(teacherId);
+CREATE INDEX idx_remark_date ON remarks_main.remark(created_date);
+
+
+--- End of database_setups\postgres\create.sql ---
+
+--- Start of database_setups\postgres\data.sql ---
+
+
+SET search_path TO remarks_main, public;
+
+INSERT INTO remarks_main.remark (studentId, teacherId, value) VALUES 
+(1, 1, 'Excellent performance in mathematics. Shows great potential in problem-solving.'),
+(1, 2, 'Good participation in English class. Needs to work on grammar.'),
+(2, 1, 'Outstanding mathematical abilities. Helps other students with complex problems.'),
+(2, 3, 'Shows great interest in science experiments. Very curious and engaged.'),
+(3, 2, 'Creative writing skills are developing well. Participates actively in discussions.'),
+(3, 4, 'Good understanding of historical concepts. Asks thoughtful questions.'),
+(4, 1, 'Struggles with advanced mathematics. Recommend additional tutoring.'),
+(4, 5, 'Excellent athletic performance. Shows leadership qualities in team sports.'),
+(5, 2, 'Strong reading comprehension skills. Enjoys literature discussions.'),
+(5, 3, 'Methodical approach to science labs. Produces detailed reports.'),
+(6, 1, 'Improving steadily in mathematics. Good effort and dedication.'),
+(6, 4, 'Enthusiastic about history projects. Good research skills.'),
+(7, 2, 'Quiet student but produces quality written work. Encourage more participation.'),
+(7, 3, 'Careful and precise in laboratory work. Follows safety protocols well.'),
+(8, 1, 'Quick learner in mathematics. Could benefit from more challenging problems.'),
+(8, 5, 'Natural athlete with good coordination. Positive team player.'),
+(9, 2, 'Developing writing skills. Shows improvement in recent assignments.'),
+(9, 4, 'Interested in ancient civilizations. Asks detailed questions about historical events.'),
+(10, 1, 'Shows potential in mathematics but needs to focus more in class.'),
+(10, 3, 'Curious about nature and science. Enjoys outdoor learning activities.');
+
+INSERT INTO remarks_main.remark (studentId, teacherId, value) VALUES 
+(1, 3, 'Shows interest in science demonstrations. Asks good follow-up questions.'),
+(2, 4, 'Demonstrates good understanding of historical timelines and cause-effect relationships.'),
+(3, 5, 'Good coordination and teamwork in physical education activities.');
+
+
+--- End of database_setups\postgres\data.sql ---
+
+--- Start of linked_servers\2msql.sql ---
+
+
+IF EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'MSSQL_REPLICA')
+    EXEC master.dbo.sp_dropserver @server=N'MSSQL_REPLICA', @droplogins='droplogins';
+GO
+
+EXEC master.dbo.sp_addlinkedserver 
+    @server = N'MSSQL_REPLICA',
+    @srvproduct = N'',  
+    @provider   = N'MSOLEDBSQL',
+    @datasrc    = N'127.0.0.1,1434';      
+GO
+
+EXEC master.dbo.sp_addlinkedsrvlogin 
+    @rmtsrvname = N'MSSQL_REPLICA',
+    @useself = 'FALSE',
+    @locallogin = NULL,
+    @rmtuser = 'sa',
+    @rmtpassword = 'Str0ng!Passw0rd';
+GO
+
+--- End of linked_servers\2msql.sql ---
+
+--- Start of linked_servers\config.sql ---
+
+USE master;
+GO
+
+EXEC sp_configure 'show advanced options', 1;
+RECONFIGURE;
+EXEC sp_configure 'Ad Hoc Distributed Queries', 1;
+RECONFIGURE;
+GO
+
+--- End of linked_servers\config.sql ---
+
+--- Start of linked_servers\excel.sql ---
+
+IF EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'EXCEL_DATA')
+    EXEC master.dbo.sp_dropserver @server=N'EXCEL_DATA', @droplogins='droplogins';
+GO
+
+EXEC master.dbo.sp_addlinkedserver 
+    @server = N'EXCEL_DATA',
+    @srvproduct = N'Excel',
+    @provider = N'Microsoft.ACE.OLEDB.12.0',
+    @datasrc = N'C:\excel_exports\SchoolData.xlsx',
+    @provstr = N'Excel 12.0;HDR=YES;';
+GO
+
+--- End of linked_servers\excel.sql ---
+
+--- Start of linked_servers\oracle.sql ---
+
+
+IF EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'ORACLE_FINANCE')
+    EXEC master.dbo.sp_dropserver @server=N'ORACLE_FINANCE', @droplogins='droplogins';
+GO
+
+EXEC master.dbo.sp_addlinkedserver 
+    @server = N'ORACLE_FINANCE',
+    @srvproduct = N'Oracle',
+    @provider = N'OraOLEDB.Oracle',
+    @datasrc = N'127.0.0.1:1521/PD19C';
+GO
+
+EXEC master.dbo.sp_addlinkedsrvlogin 
+    @rmtsrvname = N'ORACLE_FINANCE',
+    @useself = N'False',
+    @locallogin = NULL,
+    @rmtuser = N'FINANCE_DB',
+    @rmtpassword = N'Finance123';
+GO
+
+SELECT * FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS
+
+--- End of linked_servers\oracle.sql ---
+
+--- Start of linked_servers\postgres.sql ---
+
+
+IF EXISTS (SELECT srv.name FROM sys.servers srv WHERE srv.server_id != 0 AND srv.name = N'POSTGRES_REMARKS')
+    EXEC master.dbo.sp_dropserver @server=N'POSTGRES_REMARKS', @droplogins='droplogins';
+GO
+
+EXEC master.dbo.sp_addlinkedserver 
+    @server = N'POSTGRES_REMARKS',
+    @srvproduct = N'PostgreSQL',
+    @provider = N'MSDASQL',
+    @datasrc  = N'PostgreSQL30'; 
+GO
+
+EXEC master.dbo.sp_addlinkedsrvlogin 
+    @rmtsrvname = N'POSTGRES_REMARKS',
+    @useself = N'False',
+    @locallogin = NULL,
+    @rmtuser = N'remarks_user',
+    @rmtpassword = N'Remarks123';
+GO
+
+SELECT * FROM [POSTGRES_REMARKS].[remarks_system].[remarks_main].[remark]
+SELECT * FROM [POSTGRES_REMARKS].[school].[remarks_main].[remark]
+
+--- End of linked_servers\postgres.sql ---
+
+--- Start of mssql\replikacja.sql ---
+
+--USE SchoolDB;
+--EXEC sp_droppublication  @publication = N'SchoolDB_StudentsOnly';
+--EXEC sp_replicationdboption @dbname='SchoolDB', @optname='publish', @value='false';
+
+
+USE master;
+GO
+
+EXEC sp_dropdistributor 
+    @no_checks = 1, 
+    @ignore_distributor = 1;
+
+EXEC sp_adddistributor 
+     @distributor = @@SERVERNAME,
+     @password    = N'StrongDistributionPwd!';
+
+EXEC sp_adddistributiondb
+     @database      = N'distribution',
+     @data_folder   = N'C:\MSSQL\Data',
+     @log_folder    = N'C:\MSSQL\Data',
+     @security_mode = 1;
+GO
+
+RECONFIGURE;
+
+EXEC sp_adddistpublisher 
+     @publisher          = @@SERVERNAME,          
+     @distribution_db    = N'distribution',
+     @working_directory  = N'C:\ReplData',
+     @security_mode      = 1;                     
+GO
+
+EXEC sp_serveroption N'MSSQL_REPLICA', 'rpc',       'true';
+EXEC sp_serveroption N'MSSQL_REPLICA', 'rpc out',   'true';
+EXEC sp_serveroption N'MSSQL_REPLICA', 'data access','true';
+GO
+
+RECONFIGURE;
+
+EXEC sp_replflush
+
+USE SchoolDB;
+GO
+
+--USE SchoolDB;
+EXEC sp_droppublication  @publication = N'SchoolDB_StudentsOnly';
+EXEC sp_replicationdboption @dbname='SchoolDB', @optname='publish', @value='false';
+
+
+EXEC sp_replicationdboption 
+     @dbname  = N'SchoolDB',
+     @optname = N'publish',
+     @value   = N'true';                 
+GO
+
+SELECT name
+FROM msdb.dbo.sysjobs
+WHERE name LIKE '%SchoolDB%Log Reader%';
+
+SELECT  s.session_id,
+        s.login_name,
+        r.status,
+        r.command,
+        DB_NAME(r.database_id) AS db,
+        r.wait_type
+FROM    sys.dm_exec_sessions s
+JOIN    sys.dm_exec_requests r ON s.session_id = r.session_id
+WHERE   r.command LIKE 'sp_repl%';
+
+SELECT *
+FROM sys.dm_exec_requests
+WHERE command LIKE 'sp_repl%';
+
+EXEC sp_addpublication
+     @publication       = N'SchoolDB_StudentsOnly',
+     @repl_freq         = N'continuous',
+     @sync_method       = N'concurrent',
+     @replicate_ddl     = 1;
+
+EXEC sp_addarticle
+     @publication       = N'SchoolDB_StudentsOnly',
+     @article           = N'students',
+     @source_object     = N'students',
+     @type              = N'logbased',
+     @identityrangemanagementoption = N'MANUAL';
+
+EXEC sp_changepublication 
+     @publication = N'SchoolDB_StudentsOnly',
+     @property    = N'status',
+     @value       = N'active';
+GO
+
+SELECT *
+FROM   syspublications sp
+WHERE  publication = N'SchoolDB_StudentsOnly';
+
+EXEC sp_dropsubscription
+    @publication = N'SchoolDB_StudentsOnly',
+    @subscriber = N'MSSQL_REPLICA',
+    @destination_db = N'SchoolDB_Replica',
+	@article = N'all';
+
+EXEC sp_addsubscription
+     @publication       = N'SchoolDB_StudentsOnly',
+     @subscriber        = N'127.0.0.1,1434',
+     @destination_db    = N'SchoolDB_Replica',
+     @subscription_type = N'Push',
+     @sync_type         = N'automatic',
+     @article           = N'all',
+     @update_mode       = N'read only';
+GO
+
+EXEC sp_addpushsubscription_agent
+     @publication              = N'SchoolDB_StudentsOnly',
+     @subscriber               = N'127.0.0.1,1434',
+     @subscriber_db            = N'SchoolDB_Replica',
+     @subscriber_security_mode = 0,
+     @subscriber_login         = N'repl_user',
+     @subscriber_password      = N'Pa55w0rd!',
+     @frequency_type           = 64;
+GO
+
+EXEC sp_addpublication_snapshot
+    @publication             = N'SchoolDB_StudentsOnly',
+    @publisher_security_mode = 1;
+GO
+
+USE SchoolDB;
+GO
+SELECT  p.name,
+        p.snapshot_jobid,
+        sj.name  AS snapshot_jobname
+FROM    syspublications            AS p
+LEFT JOIN msdb.dbo.sysjobs AS sj   ON p.snapshot_jobid = sj.job_id
+WHERE   p.name = N'SchoolDB_StudentsOnly';
+
+-- tu bedzie nazwa ziomka od snaphotow
+
+EXEC msdb.dbo.sp_start_job
+     @job_name = N'DESKTOP-U8K1QHA-SchoolDB-SchoolDB_StudentsOnly-1';
+
+EXEC msdb.dbo.sp_help_jobstep 
+     @job_name = N'DESKTOP-U8K1QHA-SchoolDB-SchoolDB_StudentsOnly-1', 
+     @step_id  = 2;        -- Run agent
+
+EXEC msdb.dbo.sp_help_jobhistory
+     @job_name = N'DESKTOP-U8K1QHA-SchoolDB-SchoolDB_StudentsOnly-1',
+     @mode     = 'FULL';
+
+EXEC msdb.dbo.sp_start_job 
+     @job_name = N'DESKTOP-U8K1QHA-SchoolDB_StudentsOnly-MSSQL_REPLICA-SchoolDB_Replica';
+
+USE distribution;
+GO
+EXEC sp_replmonitorhelpsubscription 
+    @publisher = @@SERVERNAME,
+    @publisher_db = N'SchoolDB',
+    @publication = N'SchoolDB_StudentsOnly';
+
+USE distribution;
+GO
+EXEC sp_replmonitorhelpsubscription 
+    @publisher = N'DESKTOP-U8K1QHA',
+    @publication = N'SchoolDB_StudentsOnly';
+
+SELECT name 
+FROM msdb.dbo.sysjobs 
+WHERE name LIKE '%StudentsOnly%' AND name LIKE '%MSSQL_REPLICA%';
+
+
+EXEC msdb.dbo.sp_help_jobhistory 
+    @job_name = N'DESKTOP-U8K1QHA-SchoolDB-MSSQL_REPLICA-433577A05907464885AA96C1B2D1A5BB',
+    @mode = 'FULL';
+
+
+--- End of mssql\replikacja.sql ---
+
+--- Start of mssql\basic_crud\students\create_student.sql ---
+
+
+USE SchoolDB;
+GO
+
+CREATE OR ALTER PROCEDURE sp_CreateStudent
+    @GroupId INT,
+    @FirstName NVARCHAR(100),
+    @LastName NVARCHAR(100),
+    @Birthday DATE = NULL,
+    @GenderId INT = NULL,
+    @StudentId INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF @GroupId IS NULL OR @FirstName IS NULL OR @LastName IS NULL
+        BEGIN
+            RAISERROR('GroupId, FirstName, and LastName are required fields.', 16, 1);
+            RETURN -1;
+        END
+
+        -- Check if group exists
+        IF NOT EXISTS (SELECT 1 FROM groups WHERE id = @GroupId)
+        BEGIN
+            RAISERROR('Group with ID %d does not exist.', 16, 1, @GroupId);
+            RETURN -1;
+        END
+
+        IF @GenderId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM genders WHERE id = @GenderId)
+        BEGIN
+            RAISERROR('Gender with ID %d does not exist.', 16, 1, @GenderId);
+            RETURN -1;
+        END
+
+        IF @Birthday IS NOT NULL AND (@Birthday > GETDATE() OR @Birthday < DATEADD(YEAR, -25, GETDATE()))
+        BEGIN
+            RAISERROR('Invalid birthday. Student must be between 0 and 25 years old.', 16, 1);
+            RETURN -1;
+        END
+
+        INSERT INTO students (groupId, firstName, lastName, birthday, genderId)
+        VALUES (@GroupId, @FirstName, @LastName, @Birthday, @GenderId);
+
+        SET @StudentId = SCOPE_IDENTITY();
+
+        COMMIT TRANSACTION;
+
+        SELECT @StudentId as StudentId, 'Student created successfully' as Message;
+
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        DECLARE @ErrorSeverity INT = ERROR_SEVERITY();
+        DECLARE @ErrorState INT = ERROR_STATE();
+
+        RAISERROR(@ErrorMessage, @ErrorSeverity, @ErrorState);
+        RETURN -1;
+    END CATCH
+END;
+GO
+
+--- End of mssql\basic_crud\students\create_student.sql ---
+
+--- Start of mssql\basic_crud\students\delete_student.sql ---
+
+CREATE OR ALTER PROCEDURE sp_DeleteStudent
+    @StudentId INT,
+    @ForceDelete BIT = 0
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NOT EXISTS (SELECT 1 FROM students WHERE id = @StudentId)
+        BEGIN
+            RAISERROR('Student with ID %d does not exist.', 16, 1, @StudentId);
+            RETURN -1;
+        END
+
+        DECLARE @HasMarks INT = (SELECT COUNT(*) FROM marks WHERE studentId = @StudentId);
+        DECLARE @HasAttendance INT = (SELECT COUNT(*) FROM attendance_student WHERE studentId = @StudentId);
+        DECLARE @HasParents INT = (SELECT COUNT(*) FROM parents_students WHERE studentId = @StudentId);
+
+        IF (@HasMarks > 0 OR @HasAttendance > 0) AND @ForceDelete = 0
+        BEGIN
+            RAISERROR('Cannot delete student. Student has related marks or attendance records. Use @ForceDelete = 1 to override.', 16, 1);
+            RETURN -1;
+        END
+
+        IF @ForceDelete = 1
+        BEGIN
+            DELETE FROM marks WHERE studentId = @StudentId;
+            DELETE FROM attendance_student WHERE studentId = @StudentId;
+        END
+
+        DELETE FROM parents_students WHERE studentId = @StudentId;
+
+        DELETE FROM students WHERE id = @StudentId;
+
+        COMMIT TRANSACTION;
+
+        SELECT 'Student deleted successfully' as Message;
+
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrorMessage, 16, 1);
+        RETURN -1;
+    END CATCH
+END;
+GO
+
+
+--- End of mssql\basic_crud\students\delete_student.sql ---
+
+--- Start of mssql\basic_crud\students\get_students_by_group.sql ---
+
+CREATE OR ALTER PROCEDURE sp_GetStudentsByGroup
+    @GroupId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        s.id,
+        s.firstName + ' ' + s.lastName as FullName,
+        s.birthday,
+        DATEDIFF(YEAR, s.birthday, GETDATE()) as Age,
+        g.value as Gender,
+        COUNT(m.id) as TotalMarks,
+        AVG(CAST(m.value as FLOAT)) as AverageGrade
+    FROM students s
+    LEFT JOIN genders g ON s.genderId = g.id
+    LEFT JOIN marks m ON s.id = m.studentId
+    WHERE s.groupId = @GroupId
+    GROUP BY s.id, s.firstName, s.lastName, s.birthday, g.value
+    ORDER BY s.lastName, s.firstName;
+END;
+GO
+
+--- End of mssql\basic_crud\students\get_students_by_group.sql ---
+
+--- Start of mssql\basic_crud\students\get_student_by_id.sql ---
+
+CREATE OR ALTER PROCEDURE sp_GetStudentById
+    @StudentId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        s.id,
+        s.firstName,
+        s.lastName,
+        s.birthday,
+        DATEDIFF(YEAR, s.birthday, GETDATE()) as Age,
+        g.value as Gender,
+        gr.id as GroupId,
+        y.value as SchoolYear,
+        t.firstName + ' ' + t.lastName as HomeTeacher
+    FROM students s
+    LEFT JOIN genders g ON s.genderId = g.id
+    INNER JOIN groups gr ON s.groupId = gr.id
+    INNER JOIN years y ON gr.yearId = y.id
+    INNER JOIN teachers t ON gr.home_teacher_id = t.id
+    WHERE s.id = @StudentId;
+
+    -- Get parents information
+    SELECT 
+        p.id,
+        p.firstName,
+        p.lastName,
+        p.phoneNumber,
+        p.email
+    FROM parents p
+    INNER JOIN parents_students ps ON p.id = ps.parentId
+    WHERE ps.studentId = @StudentId;
+END;
+GO
+
+--- End of mssql\basic_crud\students\get_student_by_id.sql ---
+
+--- Start of mssql\basic_crud\students\update_student.sql ---
+
+CREATE OR ALTER PROCEDURE sp_UpdateStudent
+    @StudentId INT,
+    @GroupId INT = NULL,
+    @FirstName NVARCHAR(100) = NULL,
+    @LastName NVARCHAR(100) = NULL,
+    @Birthday DATE = NULL,
+    @GenderId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF NOT EXISTS (SELECT 1 FROM students WHERE id = @StudentId)
+        BEGIN
+            RAISERROR('Student with ID %d does not exist.', 16, 1, @StudentId);
+            RETURN -1;
+        END
+
+        IF @GroupId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM groups WHERE id = @GroupId)
+        BEGIN
+            RAISERROR('Group with ID %d does not exist.', 16, 1, @GroupId);
+            RETURN -1;
+        END
+
+        IF @GenderId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM genders WHERE id = @GenderId)
+        BEGIN
+            RAISERROR('Gender with ID %d does not exist.', 16, 1, @GenderId);
+            RETURN -1;
+        END
+
+        UPDATE students 
+        SET 
+            groupId = ISNULL(@GroupId, groupId),
+            firstName = ISNULL(@FirstName, firstName),
+            lastName = ISNULL(@LastName, lastName),
+            birthday = ISNULL(@Birthday, birthday),
+            genderId = ISNULL(@GenderId, genderId)
+        WHERE id = @StudentId;
+
+        COMMIT TRANSACTION;
+
+        SELECT 'Student updated successfully' as Message;
+
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrorMessage, 16, 1);
+        RETURN -1;
+    END CATCH
+END;
+GO
+
+--- End of mssql\basic_crud\students\update_student.sql ---
+
+--- Start of mssql\basic_crud\teachers\add_mark.sql ---
+
+CREATE OR ALTER PROCEDURE sp_AddMark
+    @SubjectId INT,
+    @StudentId INT,
+    @Value INT,
+    @Comment NVARCHAR(500) = NULL,
+    @Weight INT = 1,
+    @MarkId INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF @SubjectId IS NULL OR @StudentId IS NULL OR @Value IS NULL
+        BEGIN
+            RAISERROR('SubjectId, StudentId, and Value are required.', 16, 1);
+            RETURN -1;
+        END
+
+        IF NOT EXISTS (SELECT 1 FROM subjects WHERE id = @SubjectId)
+        BEGIN
+            RAISERROR('Subject with ID %d does not exist.', 16, 1, @SubjectId);
+            RETURN -1;
+        END
+
+        IF NOT EXISTS (SELECT 1 FROM students WHERE id = @StudentId)
+        BEGIN
+            RAISERROR('Student with ID %d does not exist.', 16, 1, @StudentId);
+            RETURN -1;
+        END
+
+        IF @Value < 1 OR @Value > 6
+        BEGIN
+            RAISERROR('Mark value must be between 1 and 6.', 16, 1);
+            RETURN -1;
+        END
+
+        IF @Weight < 1 OR @Weight > 10
+        BEGIN
+            RAISERROR('Weight must be between 1 and 10.', 16, 1);
+            RETURN -1;
+        END
+
+        INSERT INTO marks (subjectId, studentId, value, comment, weight)
+        VALUES (@SubjectId, @StudentId, @Value, @Comment, @Weight);
+
+        SET @MarkId = SCOPE_IDENTITY();
+
+        COMMIT TRANSACTION;
+
+        SELECT @MarkId as MarkId, 'Mark added successfully' as Message;
+
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrorMessage, 16, 1);
+        RETURN -1;
+    END CATCH
+END;
+GO
+
+--- End of mssql\basic_crud\teachers\add_mark.sql ---
+
+--- Start of mssql\basic_crud\teachers\create_teacher.sql ---
+
+CREATE OR ALTER PROCEDURE sp_CreateTeacher
+    @FirstName NVARCHAR(100),
+    @LastName NVARCHAR(100),
+    @Birthday DATE = NULL,
+    @PhoneNumber NVARCHAR(20) = NULL,
+    @Email NVARCHAR(100) = NULL,
+    @AdditionalInfo NVARCHAR(500) = NULL,
+    @TeacherId INT OUTPUT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRANSACTION;
+
+        IF @FirstName IS NULL OR @LastName IS NULL
+        BEGIN
+            RAISERROR('FirstName and LastName are required.', 16, 1);
+            RETURN -1;
+        END
+
+        IF @Email IS NOT NULL AND @Email NOT LIKE '%@%.%'
+        BEGIN
+            RAISERROR('Invalid email format.', 16, 1);
+            RETURN -1;
+        END
+
+        IF @Email IS NOT NULL AND EXISTS (SELECT 1 FROM teachers WHERE email = @Email)
+        BEGIN
+            RAISERROR('Email already exists.', 16, 1);
+            RETURN -1;
+        END
+
+        INSERT INTO teachers (firstName, lastName, birthday, phoneNumber, email, additionalInfo)
+        VALUES (@FirstName, @LastName, @Birthday, @PhoneNumber, @Email, @AdditionalInfo);
+
+        SET @TeacherId = SCOPE_IDENTITY();
+
+        COMMIT TRANSACTION;
+
+        SELECT @TeacherId as TeacherId, 'Teacher created successfully' as Message;
+
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0
+            ROLLBACK TRANSACTION;
+
+        DECLARE @ErrorMessage NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR(@ErrorMessage, 16, 1);
+        RETURN -1;
+    END CATCH
+END;
+GO
+
+--- End of mssql\basic_crud\teachers\create_teacher.sql ---
+
+--- Start of mssql\basic_crud\teachers\get_attendance_statistics.sql ---
+
+CREATE OR ALTER PROCEDURE sp_GetAttendanceStatistics
+    @StudentId INT = NULL,
+    @GroupId INT = NULL,
+    @StartDate DATE = NULL,
+    @EndDate DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @StartDate IS NULL SET @StartDate = DATEADD(MONTH, -1, GETDATE());
+    IF @EndDate IS NULL SET @EndDate = GETDATE();
+
+    SELECT 
+        s.id as StudentId,
+        s.firstName + ' ' + s.lastName as StudentName,
+        g.id as GroupId,
+        COUNT(ats.id) as TotalSessions,
+        SUM(CASE WHEN ats.present = 1 THEN 1 ELSE 0 END) as PresentSessions,
+        SUM(CASE WHEN ats.present = 0 THEN 1 ELSE 0 END) as AbsentSessions,
+        CAST(
+            (SUM(CASE WHEN ats.present = 1 THEN 1 ELSE 0 END) * 100.0) / 
+            NULLIF(COUNT(ats.id), 0) 
+            as DECIMAL(5,2)
+        ) as AttendancePercentage
+    FROM students s
+    INNER JOIN groups g ON s.groupId = g.id
+    LEFT JOIN attendance_student ats ON s.id = ats.studentId
+    LEFT JOIN attendances a ON ats.attendanceId = a.id
+    WHERE 
+        (@StudentId IS NULL OR s.id = @StudentId)
+        AND (@GroupId IS NULL OR s.groupId = @GroupId)
+        AND (a.dateTimeChecked IS NULL OR 
+             (CAST(a.dateTimeChecked as DATE) BETWEEN @StartDate AND @EndDate))
+    GROUP BY s.id, s.firstName, s.lastName, g.id
+    ORDER BY s.lastName, s.firstName;
+END;
+GO
+
+--- End of mssql\basic_crud\teachers\get_attendance_statistics.sql ---
+
+--- Start of mssql\basic_crud\teachers\get_class_marks_statistics.sql ---
+
+CREATE OR ALTER PROCEDURE sp_GetClassMarksStatistics
+    @GroupId INT,
+    @SubjectId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        s.id as StudentId,
+        s.firstName + ' ' + s.lastName as StudentName,
+        sub.shortName as SubjectCode,
+        COUNT(m.id) as TotalMarks,
+        AVG(CAST(m.value as FLOAT)) as AverageGrade,
+        MIN(m.value) as MinGrade,
+        MAX(m.value) as MaxGrade
+    FROM students s
+    LEFT JOIN marks m ON s.id = m.studentId
+    LEFT JOIN subjects sub ON m.subjectId = sub.id
+    WHERE s.groupId = @GroupId
+        AND (@SubjectId IS NULL OR m.subjectId = @SubjectId)
+    GROUP BY s.id, s.firstName, s.lastName, sub.id, sub.shortName
+    ORDER BY s.lastName, s.firstName, sub.shortName;
+
+    SELECT 
+        sub.shortName as SubjectCode,
+        sub.longName as SubjectName,
+        COUNT(m.id) as TotalMarks,
+        AVG(CAST(m.value as FLOAT)) as ClassAverage,
+        MIN(m.value) as LowestGrade,
+        MAX(m.value) as HighestGrade,
+        COUNT(DISTINCT m.studentId) as StudentsWithMarks
+    FROM marks m
+    INNER JOIN subjects sub ON m.subjectId = sub.id
+    INNER JOIN students s ON m.studentId = s.id
+    WHERE s.groupId = @GroupId
+        AND (@SubjectId IS NULL OR m.subjectId = @SubjectId)
+    GROUP BY sub.id, sub.shortName, sub.longName
+    ORDER BY sub.shortName;
+END;
+GO
+
+--- End of mssql\basic_crud\teachers\get_class_marks_statistics.sql ---
+
+--- Start of mssql\basic_crud\teachers\get_student_marks.sql ---
+
+CREATE OR ALTER PROCEDURE sp_GetStudentMarks
+    @StudentId INT,
+    @SubjectId INT = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        m.id,
+        sub.shortName as SubjectCode,
+        sub.longName as SubjectName,
+        m.value,
+        m.comment,
+        m.weight,
+        GETDATE() as DateAdded
+    FROM marks m
+    INNER JOIN subjects sub ON m.subjectId = sub.id
+    WHERE m.studentId = @StudentId
+        AND (@SubjectId IS NULL OR m.subjectId = @SubjectId)
+    ORDER BY sub.shortName, m.id;
+
+    SELECT 
+        sub.shortName as SubjectCode,
+        sub.longName as SubjectName,
+        COUNT(m.id) as TotalMarks,
+        AVG(CAST(m.value as FLOAT)) as SimpleAverage,
+        SUM(CAST(m.value * m.weight as FLOAT)) / SUM(m.weight) as WeightedAverage,
+        MIN(m.value) as MinMark,
+        MAX(m.value) as MaxMark
+    FROM marks m
+    INNER JOIN subjects sub ON m.subjectId = sub.id
+    WHERE m.studentId = @StudentId
+        AND (@SubjectId IS NULL OR m.subjectId = @SubjectId)
+    GROUP BY sub.id, sub.shortName, sub.longName
+    ORDER BY sub.shortName;
+END;
+GO
+
+--- End of mssql\basic_crud\teachers\get_student_marks.sql ---
+
+--- Start of mssql\basic_crud\teachers\get_teacher_details.sql ---
+
+CREATE OR ALTER PROCEDURE sp_GetTeacherDetails
+    @TeacherId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        t.id,
+        t.firstName,
+        t.lastName,
+        t.birthday,
+        t.phoneNumber,
+        t.email,
+        t.additionalInfo,
+        COUNT(DISTINCT l.id) as TotalLessons,
+        COUNT(DISTINCT l.groupId) as GroupsTeaching,
+        COUNT(DISTINCT l.subjectId) as SubjectsTeaching
+    FROM teachers t
+    LEFT JOIN lessons l ON t.id = l.teacherId
+    WHERE t.id = @TeacherId
+    GROUP BY t.id, t.firstName, t.lastName, t.birthday, t.phoneNumber, t.email, t.additionalInfo;
+
+    SELECT 
+        g.id as GroupId,
+        y.value as SchoolYear,
+        COUNT(s.id) as StudentCount
+    FROM groups g
+    INNER JOIN years y ON g.yearId = y.id
+    LEFT JOIN students s ON g.id = s.groupId
+    WHERE g.home_teacher_id = @TeacherId
+    GROUP BY g.id, y.value;
+
+    SELECT 
+        l.id as LessonId,
+        sub.shortName + ' - ' + sub.longName as Subject,
+        d.value as Day,
+        h.start_hour, h.start_minutes, h.end_hour, h.end_minutes,
+        c.location as Classroom,
+        y.value as SchoolYear
+    FROM lessons l
+    INNER JOIN subjects sub ON l.subjectId = sub.id
+    INNER JOIN days d ON l.dayId = d.id
+    INNER JOIN hours h ON l.hourId = h.id
+    INNER JOIN classrooms c ON l.classroomId = c.id
+    INNER JOIN groups g ON l.groupId = g.id
+    INNER JOIN years y ON g.yearId = y.id
+    WHERE l.teacherId = @TeacherId
+    ORDER BY d.id, h.start_hour, h.start_minutes;
+END;
+GO
+
+--- End of mssql\basic_crud\teachers\get_teacher_details.sql ---
+
+--- Start of mssql\basic_crud\teachers\postgres\add_remark.sql ---
+
+CREATE PROCEDURE dbo.pg_add_remark
+    @studentId INT,
+    @teacherId INT,
+    @value NVARCHAR(MAX)
+AS
+BEGIN
+    DECLARE @sql NVARCHAR(MAX);
+
+    SET @sql = N'
+        INSERT INTO OPENQUERY(POSTGRES_REMARKS, 
+            ''SELECT studentid, teacherid, value FROM remarks_main.remark'')
+        VALUES (' + 
+            CAST(@studentId AS NVARCHAR(20)) + ', ' +
+            CAST(@teacherId AS NVARCHAR(20)) + ', ''' +
+            REPLACE(@value, '''', '''''') + '''
+        )
+    ';
+
+    EXEC (@sql);
+END
+
+
+--- End of mssql\basic_crud\teachers\postgres\add_remark.sql ---
+
+--- Start of mssql\basic_crud\teachers\postgres\delete_remark.sql ---
+
+CREATE PROCEDURE dbo.pg_delete_remark
+    @id INT
+AS
+BEGIN
+    DECLARE @sql NVARCHAR(MAX);
+
+    SET @sql = N'
+        DELETE FROM OPENQUERY(POSTGRES_REMARKS, 
+            ''SELECT id FROM remarks_main.remark'')
+        WHERE id = ' + CAST(@id AS NVARCHAR(20)) + '
+    ';
+
+    EXEC (@sql);
+END
+
+--- End of mssql\basic_crud\teachers\postgres\delete_remark.sql ---
+
+--- Start of mssql\basic_crud\teachers\postgres\test.sql ---
+
+DECLARE @newId INT;
+DECLARE @sql NVARCHAR(MAX);
+
+EXEC dbo.pg_add_remark @studentId = 1, @teacherId = 2, @value = N'To jest testowy remark';
+
+SET @sql = N'
+SELECT TOP 1 id AS newId
+FROM OPENQUERY(POSTGRES_REMARKS, 
+    ''SELECT id FROM remarks_main.remark ORDER BY id DESC'')
+';
+CREATE TABLE #tmp_id(newId INT);
+INSERT INTO #tmp_id
+EXEC(@sql);
+
+SELECT TOP 1 @newId = newId FROM #tmp_id;
+DROP TABLE #tmp_id;
+
+SET @sql = N'
+SELECT *
+FROM OPENQUERY(POSTGRES_REMARKS, 
+    ''SELECT * FROM remarks_main.remark WHERE id = ' + CAST(@newId AS NVARCHAR(20)) + '''
+)';
+EXEC(@sql);
+
+EXEC dbo.pg_delete_remark @id = @newId;
+
+SET @sql = N'
+SELECT *
+FROM OPENQUERY(POSTGRES_REMARKS, 
+    ''SELECT * FROM remarks_main.remark WHERE id = ' + CAST(@newId AS NVARCHAR(20)) + '''
+)';
+EXEC(@sql);
+
+
+--- End of mssql\basic_crud\teachers\postgres\test.sql ---
+
+--- Start of mssql\excel_export\export.sql ---
+
+CREATE OR ALTER PROCEDURE sp_ExportStudentToExcel
+    @StudentId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @sql NVARCHAR(MAX);
+
+    -- 1. Arkusz Student$
+    SET @sql = '
+        INSERT INTO OPENROWSET(
+            ''Microsoft.ACE.OLEDB.12.0'',
+            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES;IMEX=0'',
+            ''SELECT id, groupId, firstName, lastName, birthday, genderId FROM [Student$]''
+        )
+        SELECT id, groupId, firstName, lastName, birthday, genderId
+        FROM students
+        WHERE id = ' + CAST(@StudentId AS NVARCHAR) + ';
+    ';
+    EXEC(@sql);
+
+    -- 2. Arkusz ContractsPayments$
+    SET @sql = '
+        INSERT INTO OPENROWSET(
+            ''Microsoft.ACE.OLEDB.12.0'',
+            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES;IMEX=0'',
+            ''SELECT contractId, studentId, parentId, startDate, endDate, monthlyAmount, paymentId, dueDate, paidDate, amount, status FROM [ContractsPayments$]''
+        )
+        SELECT
+            c.id as contractId,
+            c.studentId,
+            c.parentId,
+            c.startDate,
+            c.endDate,
+            c.monthlyAmount,
+            p.id as paymentId,
+            p.dueDate,
+            p.paidDate,
+            p.amount,
+            p.status
+        FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS c
+        LEFT JOIN ORACLE_FINANCE..FINANCE_DB.PAYMENTS p ON c.id = p.contractId
+        WHERE c.studentId = ' + CAST(@StudentId AS NVARCHAR) + ';
+    ';
+    EXEC(@sql);
+
+    -- 3. Arkusz Remarks$
+    DECLARE @pgSql NVARCHAR(MAX);
+
+    SET @pgSql = 
+        'SELECT id, studentId, teacherId, value, created_date FROM remarks_main.remark WHERE studentId = ' 
+        + CAST(@StudentId AS VARCHAR);
+
+    SET @sql = '
+        INSERT INTO OPENROWSET(
+            ''Microsoft.ACE.OLEDB.12.0'',
+            ''Excel 12.0;Database=C:\excel_exports\StudentData.xlsx;HDR=YES;IMEX=0'',
+            ''SELECT id, studentId, teacherId, value, created_date FROM [Remarks$]''
+        )
+        SELECT 
+            id,
+            studentId,
+            teacherId,
+            value,
+            created_date
+        FROM OPENQUERY(POSTGRES_REMARKS, ''' + REPLACE(@pgSql, '''', '''''') + ''')
+    ';
+
+    EXEC(@sql);
+
+    PRINT 'Eksport zakonczony!';
+END
+GO
+
+EXEC sp_ExportStudentToExcel @StudentId = 1;
+
+
+--- End of mssql\excel_export\export.sql ---
+
+--- Start of mssql\queries\multi_source_query.sql ---
+
+WITH StudentBasic AS (
+    SELECT 
+        id,
+        firstName + ' ' + lastName as FullName,
+        birthday,
+        groupId
+    FROM students
+),
+OracleFinance AS (
+    SELECT 
+        studentId,
+        monthlyAmount,
+        startDate as ContractStart
+    FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS
+),
+PostgresRemarks AS (
+    SELECT * FROM OPENQUERY(POSTGRES_REMARKS,
+        'SELECT studentId, COUNT(*) as RemarkCount 
+         FROM remarks_main.remark 
+         GROUP BY studentId')
+)
+SELECT 
+    sb.id,
+    sb.FullName,
+    sb.birthday,
+    ISNULL(orf.monthlyAmount, 0) as MonthlyFee,
+    ISNULL(pr.RemarkCount, 0) as TotalRemarks
+FROM StudentBasic sb
+    LEFT JOIN OracleFinance orf ON sb.id = orf.studentId
+    LEFT JOIN PostgresRemarks pr ON sb.id = pr.studentId
+ORDER BY sb.id;
+
+--- End of mssql\queries\multi_source_query.sql ---
+
+--- Start of mssql\queries\oracle_paid.sql ---
+
+SELECT *
+FROM OPENQUERY(ORACLE_FINANCE,
+    'SELECT 
+        c.studentId,
+        c.monthlyAmount,
+        COUNT(p.id) as PaymentCount,
+        SUM(CASE WHEN p.status = ''PAID'' THEN p.amount ELSE 0 END) as TotalPaid
+     FROM contracts c
+        LEFT JOIN payments p ON c.id = p.contractId
+     GROUP BY c.studentId, c.monthlyAmount') AS OracleFinanceData;
+
+--- End of mssql\queries\oracle_paid.sql ---
+
+--- Start of mssql\queries\postgres_remarks.sql ---
+
+SELECT *
+FROM OPENQUERY(POSTGRES_REMARKS,
+    'SELECT 
+        r.studentId,
+        r.teacherId,
+        COUNT(*) as RemarkCount,
+        MAX(r.created_date) as LastRemarkDate
+     FROM remarks_main.remark r
+     GROUP BY r.studentId, r.teacherId
+     ORDER BY r.studentId, r.teacherId') AS PostgresRemarksData;
+
+--- End of mssql\queries\postgres_remarks.sql ---
+
+--- Start of mssql\stored_procedures\distributed_aggregated_report.sql ---
+
+
+CREATE OR ALTER PROCEDURE sp_AggregatedReport
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    -- Local student count by group
+    SELECT 'Local Student Statistics:' as ReportSection;
+    SELECT 
+        g.id as GroupId,
+        COUNT(s.id) as StudentCount,
+        AVG(DATEDIFF(YEAR, s.birthday, GETDATE())) as AverageAge
+    FROM groups g
+        LEFT JOIN students s ON g.id = s.groupId
+    GROUP BY g.id
+    ORDER BY g.id;
+
+    -- Remote financial aggregation
+    SELECT 'Remote Financial Statistics:' as ReportSection;
+    SELECT *
+    FROM OPENQUERY(ORACLE_FINANCE,
+        'SELECT 
+            COUNT(c.id) as TotalContracts,
+            AVG(c.monthlyAmount) as AverageMonthlyAmount,
+            SUM(CASE WHEN p.status = ''PAID'' THEN p.amount ELSE 0 END) as TotalPaidAmount,
+            COUNT(CASE WHEN p.status = ''PENDING'' THEN 1 END) as PendingPayments
+         FROM contracts c
+            LEFT JOIN payments p ON c.id = p.contractId');
+
+    -- Remote remarks aggregation
+    SELECT 'Remote Remarks Statistics:' as ReportSection;
+    SELECT *
+    FROM OPENQUERY(POSTGRES_REMARKS,
+        'SELECT 
+            COUNT(*) as TotalRemarks,
+            COUNT(DISTINCT studentId) as StudentsWithRemarks,
+            COUNT(DISTINCT teacherId) as TeachersGivingRemarks
+         FROM remarks_main.remark');
+END;
+GO
+
+EXEC sp_AggregatedReport;
+
+--- End of mssql\stored_procedures\distributed_aggregated_report.sql ---
+
+--- Start of mssql\stored_procedures\distributed_student_report.sql ---
+
+
+CREATE OR ALTER PROCEDURE sp_DistributedStudentReport
+    @StartDate DATE = NULL,
+    @EndDate DATE = NULL
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @StartDateStr VARCHAR(20) = ISNULL(CONVERT(VARCHAR(20), @StartDate, 120), '2024-01-01');
+    DECLARE @EndDateStr VARCHAR(20) = ISNULL(CONVERT(VARCHAR(20), @EndDate, 120), '2024-12-31');
+
+    -- Get students with financial and remark data
+    SELECT 
+        s.id,
+        s.firstName + ' ' + s.lastName as StudentName,
+        ISNULL(finance.TotalDue, 0) as TotalFinancialDue,
+        ISNULL(finance.TotalPaid, 0) as TotalFinancialPaid,
+        ISNULL(remarks.RemarkCount, 0) as TotalRemarks,
+        ISNULL(attendance.AttendanceRate, 0) as AttendanceRate
+    FROM students s
+        LEFT JOIN (
+            -- Financial data from Oracle
+            SELECT 
+                c.studentId,
+                c.monthlyAmount * 12 as TotalDue,
+                SUM(CASE WHEN p.status = 'PAID' THEN p.amount ELSE 0 END) as TotalPaid
+            FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS c
+                LEFT JOIN ORACLE_FINANCE..FINANCE_DB.PAYMENTS p ON c.id = p.contractId
+            GROUP BY c.studentId, c.monthlyAmount
+        ) finance ON s.id = finance.studentId
+        LEFT JOIN (
+            -- Remarks data from PostgreSQL
+            SELECT 
+                studentId,
+                RemarkCount
+            FROM OPENQUERY(POSTGRES_REMARKS,
+                'SELECT studentId, COUNT(*) as RemarkCount 
+                 FROM remarks_main.remark 
+                 GROUP BY studentId')
+        ) remarks ON s.id = remarks.studentId
+        LEFT JOIN (
+            -- Attendance data from local MSSQL
+            SELECT 
+                ats.studentId,
+                CAST(AVG(CAST(ats.present AS FLOAT)) * 100 AS DECIMAL(5,2)) as AttendanceRate
+            FROM attendance_student ats
+                INNER JOIN attendances a ON ats.attendanceId = a.id
+            WHERE a.dateTimeChecked BETWEEN @StartDate AND @EndDate
+            GROUP BY ats.studentId
+        ) attendance ON s.id = attendance.studentId
+    ORDER BY s.id;
+END;
+GO
+
+DECLARE @Today DATE = GETDATE();
+DECLARE @ThreeMonthsAgo DATE = DATEADD(MONTH, -3, @Today);
+
+EXEC sp_DistributedStudentReport 
+    @StartDate = @ThreeMonthsAgo, 
+    @EndDate = @Today;
+
+--- End of mssql\stored_procedures\distributed_student_report.sql ---
+
+--- Start of mssql\stored_procedures\get_complete_info.sql ---
+
+
+CREATE OR ALTER PROCEDURE sp_GetCompleteStudentInfo
+    @StudentId INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        s.id,
+        s.firstName,
+        s.lastName,
+        s.birthday,
+        g.value as gender,
+        y.value as schoolYear
+    FROM students s
+        INNER JOIN genders g ON s.genderId = g.id
+        INNER JOIN groups gr ON s.groupId = gr.id
+        INNER JOIN years y ON gr.yearId = y.id
+    WHERE s.id = @StudentId;
+
+    BEGIN TRY
+        SELECT 
+            c.monthlyAmount,
+            c.startDate,
+            c.endDate,
+            COUNT(p.id) as totalPayments,
+            SUM(CASE WHEN p.status = 'PAID' THEN p.amount ELSE 0 END) as totalPaid
+        FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS c
+            LEFT JOIN ORACLE_FINANCE..FINANCE_DB.PAYMENTS p ON c.id = p.contractId
+        WHERE c.studentId = @StudentId
+        GROUP BY c.monthlyAmount, c.startDate, c.endDate;
+    END TRY
+    BEGIN CATCH
+        SELECT 'Financial data unavailable' as Error;
+    END CATCH;
+
+    BEGIN TRY
+    SELECT  teacherId,
+            remark,
+            created_date
+    FROM    OPENQUERY(POSTGRES_REMARKS,
+            'SELECT teacherId,
+                    value      AS remark,
+                    created_date,
+                    studentId
+             FROM   remarks_main.remark'
+            ) AS rq
+    WHERE   rq.studentId = @StudentId;
+
+	END TRY
+	BEGIN CATCH
+		SELECT 'Remarks data unavailable' AS Error,
+			   ERROR_NUMBER()             AS ErrNo,
+			   ERROR_MESSAGE()            AS ErrMsg;
+	END CATCH;
+END;
+GO
+
+EXEC sp_GetCompleteStudentInfo @StudentId = 1;
+
+--- End of mssql\stored_procedures\get_complete_info.sql ---
+
+--- Start of mssql\transactions.sql\add_student_with_contract.sql ---
+
+CREATE OR ALTER PROCEDURE sp_AddStudentWithFinanceContract
+    @GroupId INT,
+    @FirstName NVARCHAR(100),
+    @LastName NVARCHAR(100),
+    @Birthday DATE = NULL,
+    @GenderId INT = NULL,
+    @ParentId INT,
+    @ContractStart DATE,
+    @ContractEnd DATE,
+    @MonthlyAmount DECIMAL(10,2),
+    @StudentId INT OUTPUT,
+    @OracleContractId INT OUTPUT
+AS
+BEGIN
+    SET XACT_ABORT ON;  -- rollback automatyczny przy errorach
+    SET NOCOUNT ON;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        -- 1. Dodanie ucznia w MSSQL
+        EXEC sp_CreateStudent 
+            @GroupId=@GroupId, 
+            @FirstName=@FirstName, 
+            @LastName=@LastName, 
+            @Birthday=@Birthday, 
+            @GenderId=@GenderId, 
+            @StudentId=@StudentId OUTPUT;
+
+        -- 2. Powiązanie z rodzicem 
+        INSERT INTO parents_students (parentId, studentId)
+        VALUES (@ParentId, @StudentId);
+
+        -- 3. Wywołanie procedury PL/SQL w Oracle przez linked server
+        DECLARE @PLSQL NVARCHAR(MAX), @ParamDef NVARCHAR(500);
+        SET @PLSQL = N'
+        DECLARE
+            v_contract_id NUMBER;
+        BEGIN
+            sp_CreateContractWithPayments(
+                p_student_id     => :studentId,
+                p_parent_id      => :parentId,
+                p_start_date     => :startDate,
+                p_end_date       => :endDate,
+                p_monthly_amount => :monthlyAmount,
+                p_contract_id    => :contractId
+            );
+        END;';
+        SET @ParamDef = N'@studentId INT, @parentId INT, @startDate DATE, @endDate DATE, @monthlyAmount DECIMAL(10,2), @contractId INT OUTPUT';
+
+        EXEC (@PLSQL, 
+              @studentId=@StudentId, 
+              @parentId=@ParentId, 
+              @startDate=@ContractStart, 
+              @endDate=@ContractEnd, 
+              @monthlyAmount=@MonthlyAmount, 
+              @contractId=@OracleContractId OUTPUT
+        ) AT ORACLE_FINANCE;
+
+        --SELECT * FROM OPENQUERY(ORACLE_LINK, 'SELECT id FROM contracts WHERE studentId = ' + CAST(@StudentId AS VARCHAR(10)))
+		SELECT * FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS c WHERE c.studentId = @StudentId
+
+        COMMIT TRAN;
+
+        SELECT @StudentId AS StudentId, @OracleContractId AS OracleContractId, 'OK' AS Status;
+
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Błąd w trakcie transakcji: %s', 16, 1, @msg);
+    END CATCH
+END
+GO
+
+DECLARE 
+    @StudentId INT = NULL, 
+    @OracleContractId INT = NULL;
+
+BEGIN TRY
+    EXEC sp_AddStudentWithFinanceContract
+        @GroupId = 1,
+        @FirstName = N'AnnaTest',
+        @LastName = N'Testowa',
+        @Birthday = '2012-05-20',
+        @GenderId = 2,
+        @ParentId = 3,
+        @ContractStart = '2025-09-01',
+        @ContractEnd = '2026-06-30',
+        @MonthlyAmount = 1111.50,
+        @StudentId = @StudentId OUTPUT,
+        @OracleContractId = @OracleContractId OUTPUT;
+
+    SELECT 'Student w MSSQL' AS Info, * FROM students WHERE id = @StudentId;
+    SELECT 'Rodzic-Student' AS Info, * FROM parents_students WHERE studentId = @StudentId;
+    SELECT 'Kontrakt Oracle' AS Info, * FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS WHERE id = @OracleContractId;
+    SELECT 'Payments Oracle' AS Info, * FROM ORACLE_FINANCE..FINANCE_DB.PAYMENTS WHERE contractId = @OracleContractId;
+END TRY
+BEGIN CATCH
+    THROW;
+END CATCH
+
+EXEC sp_serveroption 
+    @server = 'ORACLE_FINANCE', 
+    @optname = 'rpc', 
+    @optvalue = 'true';
+
+EXEC sp_serveroption 
+    @server = 'ORACLE_FINANCE', 
+    @optname = 'rpc out', 
+    @optvalue = 'true';
+
+--- End of mssql\transactions.sql\add_student_with_contract.sql ---
+
+--- Start of mssql\transactions.sql\process_student_payment.sql ---
+
+CREATE OR ALTER PROCEDURE sp_ProcessStudentPayment
+    @StudentId INT,
+    @PaidAmount DECIMAL(10,2),
+    @PaidDate DATE = NULL
+AS
+BEGIN
+    SET XACT_ABORT ON;
+    SET NOCOUNT ON;
+
+    DECLARE @OracleResult NVARCHAR(200);
+    DECLARE @ContractId INT;
+    DECLARE @PaymentId INT;
+
+    BEGIN TRY
+        BEGIN TRAN;
+
+        -- Pobierz najnowszy kontrakt dla studenta z Oracle
+        SELECT TOP 1 @ContractId = c.id
+        FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS c
+        WHERE c.studentId = @StudentId
+        ORDER BY c.id DESC;
+
+        IF @ContractId IS NULL
+            THROW 51000, 'Nie znaleziono kontraktu dla studenta w Oracle', 1;
+
+        -- Pobierz najbliższą płatność do opłacenia
+        SELECT TOP 1 @PaymentId = p.id
+        FROM ORACLE_FINANCE..FINANCE_DB.PAYMENTS p
+        WHERE p.contractId = @ContractId
+          AND p.status = 'PENDING'
+        ORDER BY p.dueDate;
+
+        IF @PaymentId IS NULL
+            THROW 51000, 'Nie znaleziono zaległej płatności dla kontraktu', 1;
+
+        -- Wywołaj procedurę przetwarzającą płatność
+        DECLARE @PLSQL NVARCHAR(MAX);
+        SET @PLSQL = N'
+        DECLARE v_result VARCHAR2(100);
+        BEGIN
+            sp_ProcessPayment(
+                p_payment_id   => :paymentId,
+                p_paid_amount  => :paidAmount,
+                p_paid_date    => :paidDate,
+                p_result       => :result
+            );
+        END;';
+
+        EXEC (@PLSQL,
+             @paymentId=@PaymentId,
+             @paidAmount=@PaidAmount,
+             @paidDate=@PaidDate,
+             @result=@OracleResult OUTPUT
+        ) AT ORACLE_FINANCE;
+
+        -- Sprawdź rezultat z Oracle
+       IF @OracleResult LIKE 'ERROR:%'
+        BEGIN
+            THROW 51000, @OracleResult, 1;
+        END
+        ELSE IF @OracleResult LIKE 'INFO:%'
+        BEGIN
+            PRINT @OracleResult;
+        END
+
+        COMMIT TRAN;
+        SELECT @OracleResult AS OraclePaymentStatus, 'OK' AS Status;
+
+    END TRY
+    BEGIN CATCH
+        IF @@TRANCOUNT > 0 ROLLBACK TRAN;
+        DECLARE @msg NVARCHAR(4000) = ERROR_MESSAGE();
+        RAISERROR('Błąd płatności cross-db: %s', 16, 1, @msg);
+    END CATCH
+END
+GO
+
+
+
+-- 1. Znajdź pierwszą PENDING płatność i jej dane
+DECLARE 
+    @PaymentId INT,
+    @ContractId INT,
+    @FullAmount DECIMAL(10,2);
+
+SELECT TOP 1
+    @PaymentId = id,
+    @ContractId = contractId,
+    @FullAmount = amount
+FROM ORACLE_FINANCE..FINANCE_DB.PAYMENTS
+WHERE status = 'PENDING'
+ORDER BY dueDate;
+
+IF @PaymentId IS NULL
+BEGIN
+    PRINT 'Brak płatności PENDING do testu!';
+    RETURN;
+END
+
+-- 2. Znajdź studenta z kontraktu
+DECLARE @PendingStudentId INT;
+SELECT @PendingStudentId = studentId
+FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS
+WHERE id = @ContractId;
+
+IF @PendingStudentId IS NULL
+BEGIN
+    PRINT 'Brak studenta do kontraktu!';
+    RETURN;
+END
+
+PRINT 'Test studentId=' + CAST(@PendingStudentId AS NVARCHAR)
+    + ', contractId=' + CAST(@ContractId AS NVARCHAR)
+    + ', paymentId=' + CAST(@PaymentId AS NVARCHAR);
+
+-- 3. Wylicz kwoty wpłat
+DECLARE 
+    @PartialAmount DECIMAL(10,2) = ROUND(@FullAmount * 0.4, 2),
+    @RemainAmount DECIMAL(10,2) = @FullAmount - ROUND(@FullAmount * 0.4, 2),
+    @Today DATE;
+
+SET @Today = CONVERT(DATE, GETDATE());
+
+PRINT 'Częściowa wpłata: ' + CAST(@PartialAmount AS NVARCHAR);
+PRINT 'Reszta do wpłaty: ' + CAST(@RemainAmount AS NVARCHAR);
+
+-- 4. Częściowa wpłata
+EXEC sp_ProcessStudentPayment
+    @StudentId = @PendingStudentId,
+    @PaidAmount = @PartialAmount,
+    @PaidDate = @Today;
+
+PRINT 'Po częściowej wpłacie:';
+SELECT * FROM ORACLE_FINANCE..FINANCE_DB.PAYMENTS WHERE id = @PaymentId;
+
+-- 5. Dopłata reszty
+EXEC sp_ProcessStudentPayment
+    @StudentId = @PendingStudentId,
+    @PaidAmount = @RemainAmount,
+    @PaidDate = @Today;
+
+PRINT 'Po całkowitej wpłacie:';
+SELECT * FROM ORACLE_FINANCE..FINANCE_DB.PAYMENTS WHERE id = @PaymentId;
+
+
+--- End of mssql\transactions.sql\process_student_payment.sql ---
+
+--- Start of mssql\views\distributed_student_data.sql ---
+
+
+CREATE OR ALTER VIEW vw_DistributedStudentData AS
+SELECT 
+    CAST(s.id AS INT) as StudentId,
+    CAST(s.firstName + ' ' + s.lastName AS NVARCHAR(200)) as StudentName,
+    CAST(s.birthday AS DATE) as BirthDate,
+    CAST(oracle_data.monthlyAmount AS DECIMAL(10,2)) as MonthlyAmount,
+    CAST(postgres_data.RemarkCount AS INT) as RemarkCount
+FROM students s
+    LEFT JOIN (
+        SELECT 
+            CAST(studentId AS INT) as studentId,
+            CAST(monthlyAmount AS DECIMAL(10,2)) as monthlyAmount
+        FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS
+    ) oracle_data ON s.id = oracle_data.studentId
+    LEFT JOIN (
+        SELECT 
+            studentId,
+            RemarkCount
+        FROM OPENQUERY(POSTGRES_REMARKS,
+            'SELECT studentId, COUNT(*) as RemarkCount 
+             FROM remarks_main.remark 
+             GROUP BY studentId')
+    ) postgres_data ON s.id = postgres_data.studentId;
+GO
+
+SELECT * FROM vw_DistributedStudentData;
+
+--- End of mssql\views\distributed_student_data.sql ---
+
+--- Start of mssql\views\students_complete_info.sql ---
+
+
+USE SchoolDB;
+GO
+
+CREATE OR ALTER VIEW vw_StudentCompleteInfo AS
+SELECT 
+    s.id as StudentId,
+    s.firstName + ' ' + s.lastName as StudentName,
+    s.birthday,
+    g.value as Gender,
+    y.value as SchoolYear,
+    p.firstName + ' ' + p.lastName as ParentName,
+    p.email as ParentEmail,
+    p.phoneNumber as ParentPhone
+FROM students s
+    INNER JOIN genders g ON s.genderId = g.id
+    INNER JOIN groups gr ON s.groupId = gr.id
+    INNER JOIN years y ON gr.yearId = y.id
+    INNER JOIN parents_students ps ON s.id = ps.studentId
+    INNER JOIN parents p ON ps.parentId = p.id;
+GO
+
+SELECT * FROM vw_StudentCompleteInfo;
+
+--- End of mssql\views\students_complete_info.sql ---
+
+--- Start of mssql\views\student_financial_info.sql ---
+
+USE SchoolDB;
+GO
+
+CREATE OR ALTER VIEW vw_StudentFinancialInfo AS
+SELECT 
+    s.id as StudentId,
+    s.firstName + ' ' + s.lastName as StudentName,
+    ISNULL(oracle_data.monthlyAmount, 0) as MonthlyAmount,
+    ISNULL(oracle_data.totalPaid, 0) as TotalPaid,
+    ISNULL(oracle_data.pendingAmount, 0) as PendingAmount
+FROM students s
+    LEFT JOIN (
+        SELECT 
+            c.studentId,
+            c.monthlyAmount,
+            ISNULL(p.totalPaid, 0) as totalPaid,
+            ISNULL(c.monthlyAmount * 12 - p.totalPaid, c.monthlyAmount * 12) as pendingAmount
+        FROM ORACLE_FINANCE..FINANCE_DB.CONTRACTS c
+            LEFT JOIN (
+                SELECT 
+                    contractId,
+                    SUM(CASE WHEN status = 'PAID' THEN amount ELSE 0 END) as totalPaid
+                FROM ORACLE_FINANCE..FINANCE_DB.PAYMENTS
+                GROUP BY contractId
+            ) p ON c.id = p.contractId
+    ) oracle_data ON s.id = oracle_data.studentId;
+GO
+
+SELECT * FROM vw_StudentFinancialInfo;
+
+--- End of mssql\views\student_financial_info.sql ---
+
+--- Start of oracle\finance\functions\calculate_outstanding_balance.sql ---
+
+CREATE OR REPLACE FUNCTION fn_CalculateOutstandingBalance (
+    p_student_id IN NUMBER
+) RETURN NUMBER
+AS
+    v_total_due NUMBER := 0;
+    v_total_paid NUMBER := 0;
+    v_outstanding NUMBER := 0;
+BEGIN
+    SELECT 
+        SUM(c.monthlyAmount * MONTHS_BETWEEN(c.endDate, c.startDate)),
+        NVL(SUM(CASE WHEN p.status = 'PAID' THEN p.amount ELSE 0 END), 0)
+    INTO v_total_due, v_total_paid
+    FROM contracts c
+        LEFT JOIN payments p ON c.id = p.contractId
+    WHERE c.studentId = p_student_id;
+
+    v_outstanding := NVL(v_total_due, 0) - NVL(v_total_paid, 0);
+
+    RETURN v_outstanding;
+END fn_CalculateOutstandingBalance;
+/
+
+SELECT fn_CalculateOutstandingBalance(1) AS outstanding_balance FROM dual;
+
+--- End of oracle\finance\functions\calculate_outstanding_balance.sql ---
+
+--- Start of oracle\finance\package_distributed_finance\body.sql ---
+
+
+CREATE OR REPLACE PACKAGE BODY pkg_DistributedFinance AS
+
+    FUNCTION fn_GetStudentFinanceData(p_student_id NUMBER)
+    RETURN t_finance_table PIPELINED
+    AS
+    v_rec t_finance_record;
+    BEGIN
+    FOR c IN (
+        SELECT  c.id,
+                c.studentId,
+                c.parentId,
+                c.monthlyAmount,
+                c.startDate,
+                c.endDate,
+                NVL(SUM(CASE WHEN p.status = 'PAID' THEN p.amount END),0)   AS total_paid
+        FROM      contracts c
+        LEFT JOIN payments  p ON p.contractId = c.id
+        WHERE     c.studentId = p_student_id
+        GROUP BY  c.id, c.studentId, c.parentId,
+                    c.monthlyAmount, c.startDate, c.endDate
+    ) LOOP
+        v_rec.contract_id        := c.id;
+        v_rec.student_id         := c.studentId;
+        v_rec.parent_id          := c.parentId;
+        v_rec.monthly_amount     := c.monthlyAmount;
+        v_rec.total_paid         := c.total_paid;
+
+        /* outstanding liczony „per kontrakt”  */
+        v_rec.outstanding_balance :=
+                ( c.monthlyAmount *
+                    ROUND(MONTHS_BETWEEN(c.endDate, c.startDate)) )
+                - c.total_paid;
+
+        PIPE ROW(v_rec);
+    END LOOP;
+    RETURN;
+    END fn_GetStudentFinanceData;
+
+    PROCEDURE sp_DistributedPaymentProcessing(
+        p_student_id IN NUMBER,
+        p_payment_amount IN NUMBER,
+        p_payment_date IN DATE DEFAULT SYSDATE,
+        p_result OUT VARCHAR2
+    ) AS
+        v_contract_id NUMBER;
+        v_payment_id NUMBER;
+        v_temp_result VARCHAR2(200);
+    BEGIN
+        -- Find the contract for the student
+        SELECT id
+        INTO v_contract_id
+        FROM ( SELECT id
+                FROM contracts
+                WHERE studentId = p_student_id
+                ORDER BY id DESC )
+        WHERE ROWNUM = 1;
+
+        -- Find pending payment
+        SELECT id
+            INTO v_payment_id
+            FROM payments
+        WHERE contractId = v_contract_id
+            AND status     = 'PENDING'
+            AND amount     = p_payment_amount
+        ORDER BY dueDate           /* najbliższy termin */
+        FETCH FIRST 1 ROWS ONLY;
+
+        -- Process the payment
+        sp_ProcessPayment( v_payment_id,
+                     p_payment_amount,
+                     p_payment_date,
+                     v_temp_result );
+        p_result := v_temp_result;
+
+        -- Update summary in remote schema
+        MERGE INTO REMOTE_DB2.payment_summary  ps
+        USING (
+                SELECT c.id                                  AS contractId,
+                    NVL(SUM(p.amount),0)                  AS totalAmount,
+                    COUNT(p.id)                           AS paymentCount,
+                    MAX(p.paidDate)                       AS lastPaymentDate
+                FROM contracts c
+            LEFT JOIN payments  p ON p.contractId = c.id
+                WHERE c.id = v_contract_id                  -- <-- tylko ten kontrakt
+                GROUP BY c.id
+        ) src
+        ON (ps.contractId = src.contractId)
+        WHEN MATCHED THEN UPDATE
+                SET totalAmount     = src.totalAmount,
+                    paymentCount    = src.paymentCount,
+                    lastPaymentDate = src.lastPaymentDate
+        WHEN NOT MATCHED THEN
+                INSERT (contractId,totalAmount,paymentCount,lastPaymentDate)
+                VALUES (src.contractId,src.totalAmount,src.paymentCount,src.lastPaymentDate);
+
+        COMMIT;
+
+    EXCEPTION
+        WHEN NO_DATA_FOUND THEN
+            p_result := 'ERROR: Contract or pending payment not found';
+        WHEN OTHERS THEN
+            ROLLBACK;
+            p_result := 'ERROR: ' || SQLERRM;
+    END sp_DistributedPaymentProcessing;
+
+    PROCEDURE sp_GenerateFinanceReport(
+        p_report_type IN VARCHAR2,
+        p_cursor OUT SYS_REFCURSOR
+    ) AS
+    BEGIN
+        IF p_report_type = 'SUMMARY' THEN
+            OPEN p_cursor FOR
+            SELECT 
+                COUNT(DISTINCT c.id) as total_contracts,
+                COUNT(DISTINCT c.studentId) as total_students,
+                SUM(c.monthlyAmount) as total_monthly_revenue,
+                SUM(CASE WHEN p.status = 'PAID' THEN p.amount ELSE 0 END) as total_collected,
+                SUM(CASE WHEN p.status = 'PENDING' THEN p.amount ELSE 0 END) as total_pending
+            FROM contracts c
+                LEFT JOIN payments p ON c.id = p.contractId;
+
+        ELSIF p_report_type = 'DETAILED' THEN
+            OPEN p_cursor FOR
+            SELECT * FROM vw_DistributedFinanceData
+            ORDER BY source_schema, studentId;
+
+        ELSIF p_report_type = 'OVERDUE' THEN
+            OPEN p_cursor FOR
+            SELECT 
+                c.studentId,
+                c.parentId,
+                p.dueDate,
+                p.amount,
+                TRUNC(SYSDATE - p.dueDate) as days_overdue
+            FROM contracts c
+                INNER JOIN payments p ON c.id = p.contractId
+            WHERE p.status = 'PENDING'
+            AND p.dueDate < SYSDATE
+            ORDER BY p.dueDate;
+        END IF;
+    END sp_GenerateFinanceReport;
+
+END pkg_DistributedFinance;
+/
+
+--- End of oracle\finance\package_distributed_finance\body.sql ---
+
+--- Start of oracle\finance\package_distributed_finance\head.sql ---
+
+
+CREATE OR REPLACE PACKAGE pkg_DistributedFinance AS
+    TYPE t_finance_record IS RECORD (
+        contract_id NUMBER,
+        student_id NUMBER,
+        parent_id NUMBER,
+        monthly_amount NUMBER,
+        total_paid NUMBER,
+        outstanding_balance NUMBER
+    );
+
+    TYPE t_finance_table IS TABLE OF t_finance_record;
+
+    FUNCTION fn_GetStudentFinanceData(p_student_id NUMBER) RETURN t_finance_table PIPELINED;
+
+    PROCEDURE sp_DistributedPaymentProcessing(
+        p_student_id IN NUMBER,
+        p_payment_amount IN NUMBER,
+        p_payment_date IN DATE DEFAULT SYSDATE,
+        p_result OUT VARCHAR2
+    );
+
+    PROCEDURE sp_GenerateFinanceReport(
+        p_report_type IN VARCHAR2, -- 'SUMMARY', 'DETAILED', 'OVERDUE'
+        p_cursor OUT SYS_REFCURSOR
+    );
+
+END pkg_DistributedFinance;
+/
+
+--- End of oracle\finance\package_distributed_finance\head.sql ---
+
+--- Start of oracle\finance\package_distributed_finance\test.sql ---
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    v_contract_id   NUMBER;
+    v_payment_id    NUMBER;
+    v_result        VARCHAR2(200);
+    v_cursor        SYS_REFCURSOR;
+
+    -- Dane testowe
+    v_student_id    NUMBER := 999;
+    v_parent_id     NUMBER := 888;
+    v_start_date    DATE := TO_DATE('2025-05-07', 'YYYY-MM-DD');
+    v_end_date      DATE := TO_DATE('2025-09-04', 'YYYY-MM-DD');
+    v_monthly_amount NUMBER := 1000;
+
+    -- Zmienne do odczytu z kursora
+    v_total_contracts     NUMBER;
+    v_total_students      NUMBER;
+    v_total_revenue       NUMBER;
+    v_total_collected     NUMBER;
+    v_total_pending       NUMBER;
+BEGIN
+    -- 1. Wstaw kontrakt i płatności
+    sp_CreateContractWithPayments(
+        p_student_id     => v_student_id,
+        p_parent_id      => v_parent_id,
+        p_start_date     => v_start_date,
+        p_end_date       => v_end_date,
+        p_monthly_amount => v_monthly_amount,
+        p_contract_id    => v_contract_id
+    );
+
+    DBMS_OUTPUT.PUT_LINE('Utworzono kontrakt ID: ' || v_contract_id);
+
+    -- 2. Przetwarzanie płatności
+    pkg_DistributedFinance.sp_DistributedPaymentProcessing(
+        p_student_id     => v_student_id,
+        p_payment_amount => v_monthly_amount,
+        p_result         => v_result
+    );
+    DBMS_OUTPUT.PUT_LINE('Przetwarzanie płatności: ' || v_result);
+
+    -- 3. Wywołanie funkcji zwracającej dane finansowe studenta
+    DBMS_OUTPUT.PUT_LINE('Dane finansowe studenta:');
+    FOR rec IN (
+        SELECT * FROM TABLE(pkg_DistributedFinance.fn_GetStudentFinanceData(v_student_id))
+    ) LOOP
+        DBMS_OUTPUT.PUT_LINE('  Kontrakt: ' || rec.contract_id || 
+                             ', Zapłacono: ' || rec.total_paid || 
+                             ', Do zapłaty: ' || rec.outstanding_balance);
+    END LOOP;
+
+    -- 4. Wygenerowanie raportu finansowego (summary)
+    pkg_DistributedFinance.sp_GenerateFinanceReport('SUMMARY', v_cursor);
+
+    FETCH v_cursor INTO 
+        v_total_contracts, 
+        v_total_students, 
+        v_total_revenue, 
+        v_total_collected, 
+        v_total_pending;
+
+    CLOSE v_cursor;
+
+    DBMS_OUTPUT.PUT_LINE('--- PODSUMOWANIE ---');
+    DBMS_OUTPUT.PUT_LINE('  Kontraktów: ' || v_total_contracts);
+    DBMS_OUTPUT.PUT_LINE('  Studentów : ' || v_total_students);
+    DBMS_OUTPUT.PUT_LINE('  Miesięczny przychód: ' || v_total_revenue);
+    DBMS_OUTPUT.PUT_LINE('  Zapłacone: ' || v_total_collected);
+    DBMS_OUTPUT.PUT_LINE('  Oczekujące: ' || v_total_pending);
+
+    -- 5. Weryfikacja wpisu w remote_payment_summary
+    DBMS_OUTPUT.PUT_LINE('--- REMOTE PAYMENT SUMMARY ---');
+    FOR rec IN (
+        SELECT * FROM REMOTE_DB2.payment_summary WHERE contractId = v_contract_id
+    ) LOOP
+        DBMS_OUTPUT.PUT_LINE('  Suma: ' || rec.totalAmount || 
+                             ', Płatności: ' || rec.paymentCount || 
+                             ', Ostatnia: ' || TO_CHAR(rec.lastPaymentDate, 'YYYY-MM-DD'));
+    END LOOP;
+
+    -- 6. sprzątanie po teście:
+    DELETE FROM payments WHERE contractId = v_contract_id;
+    DELETE FROM contracts WHERE id = v_contract_id;
+    DELETE FROM REMOTE_DB2.payment_summary WHERE contractId = v_contract_id;
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('BŁĄD TESTU: ' || SQLERRM);
+END;
+/
+
+
+--- End of oracle\finance\package_distributed_finance\test.sql ---
+
+--- Start of oracle\finance\procedures\create_contract_with_payment.sql ---
+
+CREATE OR REPLACE PROCEDURE sp_CreateContractWithPayments (
+    p_student_id IN NUMBER,
+    p_parent_id IN NUMBER,
+    p_start_date IN DATE,
+    p_end_date IN DATE,
+    p_monthly_amount IN NUMBER,
+    p_contract_id OUT NUMBER
+)
+AS
+    v_payment_date DATE;
+    v_current_date DATE;
+BEGIN
+    INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount)
+    VALUES (p_student_id, p_parent_id, p_start_date, p_end_date, p_monthly_amount)
+    RETURNING id INTO p_contract_id;
+
+    v_current_date := p_start_date;
+
+    WHILE v_current_date <= p_end_date LOOP
+        v_payment_date := TRUNC(v_current_date, 'MM');
+
+        INSERT INTO payments (contractId, dueDate, amount, status)
+        VALUES (p_contract_id, v_payment_date, p_monthly_amount, 'PENDING');
+
+        v_current_date := ADD_MONTHS(v_current_date, 1);
+    END LOOP;
+
+    --COMMIT;
+
+    DBMS_OUTPUT.PUT_LINE('Contract created with ID: ' || p_contract_id);
+END sp_CreateContractWithPayments;
+/
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    v_contract_id   NUMBER;
+    v_student_id    NUMBER := 30;
+    v_parent_id     NUMBER := 1;
+    v_start_date    DATE := TO_DATE('2025-07-01', 'YYYY-MM-DD');
+    v_end_date      DATE := TO_DATE('2025-12-31', 'YYYY-MM-DD');
+    v_monthly_amt   NUMBER := 1000;
+BEGIN
+    sp_CreateContractWithPayments(
+        p_student_id     => v_student_id,
+        p_parent_id      => v_parent_id,
+        p_start_date     => v_start_date,
+        p_end_date       => v_end_date,
+        p_monthly_amount => v_monthly_amt,
+        p_contract_id    => v_contract_id
+    );
+
+    DBMS_OUTPUT.PUT_LINE('New contract ID: ' || v_contract_id);
+END;
+/
+
+SELECT * FROM contracts WHERE id = 61;
+
+--- End of oracle\finance\procedures\create_contract_with_payment.sql ---
+
+--- Start of oracle\finance\procedures\distributed_finance_report.sql ---
+
+CREATE OR REPLACE PROCEDURE sp_CrossSchemaFinanceReport (
+    p_student_id IN NUMBER DEFAULT NULL,
+    p_cursor OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    IF p_student_id IS NOT NULL THEN
+        OPEN p_cursor FOR
+        SELECT 
+            source_schema,
+            contract_id,
+            studentId,
+            monthlyAmount,
+            payment_status,
+            payment_amount
+        FROM vw_DistributedFinanceData
+        WHERE studentId = p_student_id
+        ORDER BY source_schema, contract_id;
+    ELSE
+        OPEN p_cursor FOR
+        SELECT 
+            source_schema,
+            COUNT(*) as contract_count,
+            SUM(monthlyAmount) as total_monthly_amount,
+            SUM(CASE WHEN payment_status = 'PAID' THEN payment_amount ELSE 0 END) as total_paid
+        FROM vw_DistributedFinanceData
+        GROUP BY source_schema
+        ORDER BY source_schema;
+    END IF;
+END sp_CrossSchemaFinanceReport;
+/
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    v_cursor SYS_REFCURSOR;
+    v_source_schema     VARCHAR2(30);
+    v_contract_id       NUMBER;
+    v_student_id        NUMBER;
+    v_monthly_amount    NUMBER;
+    v_payment_status    VARCHAR2(20);
+    v_payment_amount    NUMBER;
+BEGIN
+    sp_CrossSchemaFinanceReport(p_student_id => 1, p_cursor => v_cursor);
+
+    LOOP
+        FETCH v_cursor INTO 
+            v_source_schema, 
+            v_contract_id, 
+            v_student_id, 
+            v_monthly_amount, 
+            v_payment_status, 
+            v_payment_amount;
+
+        EXIT WHEN v_cursor%NOTFOUND;
+
+        DBMS_OUTPUT.PUT_LINE('[' || v_source_schema || '] Contract: ' || v_contract_id || 
+                             ', Student: ' || v_student_id ||
+                             ', Amount: ' || v_monthly_amount ||
+                             ', Status: ' || v_payment_status ||
+                             ', Paid: ' || v_payment_amount);
+    END LOOP;
+
+    CLOSE v_cursor;
+END;
+/
+
+
+--- End of oracle\finance\procedures\distributed_finance_report.sql ---
+
+--- Start of oracle\finance\procedures\get_contract_info.sql ---
+
+
+CREATE OR REPLACE PROCEDURE sp_GetContractInfo (
+    p_student_id IN NUMBER,
+    p_cursor OUT SYS_REFCURSOR
+)
+AS
+BEGIN
+    OPEN p_cursor FOR
+    SELECT 
+        c.id,
+        c.studentId,
+        c.parentId,
+        c.startDate,
+        c.endDate,
+        c.monthlyAmount,
+        COUNT(p.id) as totalPayments,
+        SUM(CASE WHEN p.status = 'PAID' THEN p.amount ELSE 0 END) as totalPaid,
+        SUM(CASE WHEN p.status = 'PENDING' THEN p.amount ELSE 0 END) as totalPending
+    FROM contracts c
+        LEFT JOIN payments p ON c.id = p.contractId
+    WHERE c.studentId = p_student_id
+    GROUP BY c.id, c.studentId, c.parentId, c.startDate, c.endDate, c.monthlyAmount;
+END sp_GetContractInfo;
+/
+
+SET SERVEROUTPUT ON;
+
+DECLARE
+    v_cursor SYS_REFCURSOR;
+    v_id            contracts.id%TYPE;
+    v_studentId     contracts.studentId%TYPE;
+    v_parentId      contracts.parentId%TYPE;
+    v_startDate     contracts.startDate%TYPE;
+    v_endDate       contracts.endDate%TYPE;
+    v_monthlyAmount contracts.monthlyAmount%TYPE;
+    v_totalPayments NUMBER;
+    v_totalPaid     NUMBER;
+    v_totalPending  NUMBER;
+BEGIN
+    sp_GetContractInfo(p_student_id => 1, p_cursor => v_cursor);
+
+    LOOP
+        FETCH v_cursor INTO
+            v_id, v_studentId, v_parentId, v_startDate, v_endDate,
+            v_monthlyAmount, v_totalPayments, v_totalPaid, v_totalPending;
+
+        EXIT WHEN v_cursor%NOTFOUND;
+
+        -- Wypisanie wszystkich danych
+        DBMS_OUTPUT.PUT_LINE('Contract ID     : ' || v_id);
+        DBMS_OUTPUT.PUT_LINE('Student ID      : ' || v_studentId);
+        DBMS_OUTPUT.PUT_LINE('Parent ID       : ' || v_parentId);
+        DBMS_OUTPUT.PUT_LINE('Start Date      : ' || TO_CHAR(v_startDate, 'YYYY-MM-DD'));
+        DBMS_OUTPUT.PUT_LINE('End Date        : ' || TO_CHAR(v_endDate, 'YYYY-MM-DD'));
+        DBMS_OUTPUT.PUT_LINE('Monthly Amount  : ' || v_monthlyAmount);
+        DBMS_OUTPUT.PUT_LINE('Total Payments  : ' || v_totalPayments);
+        DBMS_OUTPUT.PUT_LINE('Total Paid      : ' || v_totalPaid);
+        DBMS_OUTPUT.PUT_LINE('Total Pending   : ' || v_totalPending);
+        DBMS_OUTPUT.PUT_LINE('-------------------------------');
+    END LOOP;
+
+    CLOSE v_cursor;
+END;
+/
+
+
+--- End of oracle\finance\procedures\get_contract_info.sql ---
+
+--- Start of oracle\finance\procedures\process_payment.sql ---
+
+CREATE OR REPLACE PROCEDURE sp_ProcessPayment (
+    p_payment_id   IN NUMBER,
+    p_paid_amount  IN NUMBER,
+    p_paid_date    IN DATE DEFAULT SYSDATE,
+    p_result       OUT VARCHAR2
+) AS
+    v_exists       NUMBER;
+    v_expected_amt NUMBER;
+BEGIN
+    -- Sprawdź, czy płatność istnieje i ma status PENDING
+    SELECT COUNT(*), MAX(amount)
+    INTO v_exists, v_expected_amt
+    FROM payments
+    WHERE id = p_payment_id
+      AND status = 'PENDING';
+
+    IF v_exists = 0 THEN
+        p_result := 'ERROR: Payment not found or already processed';
+        RETURN;
+    END IF;
+
+    -- Sprawdź, czy zapłacona kwota jest wystarczająca
+    IF p_paid_amount < v_expected_amt THEN
+        -- Płatność częściowa – zmniejszamy kwotę, ale nie zmieniamy statusu
+        UPDATE payments
+        SET amount = v_expected_amt - p_paid_amount
+        WHERE id = p_payment_id;
+
+        p_result := 'INFO: Partial payment accepted, remaining: ' || TO_CHAR(v_expected_amt - p_paid_amount);
+    ELSE
+        -- Pełna płatność – ustawiamy status na PAID
+        UPDATE payments
+        SET
+            status   = 'PAID',
+            paidDate = p_paid_date
+        WHERE id = p_payment_id;
+
+        p_result := 'SUCCESS: Payment fully processed';
+    END IF;
+
+    --COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        p_result := 'ERROR: ' || SQLERRM;
+END sp_ProcessPayment;
+/
+
+
+
+SET SERVEROUTPUT ON;
+
+select * from payments where contractid = 61;
+
+DECLARE
+    v_result VARCHAR2(100);
+BEGIN
+    sp_ProcessPayment(
+        p_payment_id   => 43,
+        p_paid_amount  => 100, 
+        p_paid_date    => SYSDATE,
+        p_result       => v_result
+    );
+
+    DBMS_OUTPUT.PUT_LINE('Result: ' || v_result);
+END;
+/
+
+--- End of oracle\finance\procedures\process_payment.sql ---
+
+--- Start of oracle\finance\procedures\sync_data.sql ---
+
+CREATE OR REPLACE PROCEDURE sp_SyncBetweenSchemas (
+    p_operation IN VARCHAR2
+)
+AS
+    v_count NUMBER := 0;
+BEGIN
+    IF p_operation = 'SYNC_TO_REMOTE' THEN
+        -- Sync main contracts to remote schema
+        INSERT INTO REMOTE_DB1.contracts_remote (studentId, parentId, startDate, endDate, monthlyAmount)
+        SELECT studentId, parentId, startDate, endDate, monthlyAmount
+        FROM contracts c
+        WHERE NOT EXISTS (
+            SELECT 1 FROM REMOTE_DB1.contracts_remote cr 
+            WHERE cr.studentId = c.studentId AND cr.parentId = c.parentId
+        );
+
+        v_count := SQL%ROWCOUNT;
+        DBMS_OUTPUT.PUT_LINE('Synced ' || v_count || ' contracts to remote schema');
+
+    ELSIF p_operation = 'SYNC_FROM_REMOTE' THEN
+        -- Sync remote contracts to main schema
+        INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount)
+        SELECT studentId, parentId, startDate, endDate, monthlyAmount
+        FROM REMOTE_DB1.contracts_remote cr
+        WHERE NOT EXISTS (
+            SELECT 1 FROM contracts c 
+            WHERE c.studentId = cr.studentId AND c.parentId = cr.parentId
+        );
+
+        v_count := SQL%ROWCOUNT;
+        DBMS_OUTPUT.PUT_LINE('Synced ' || v_count || ' contracts from remote schema');
+    END IF;
+
+    COMMIT;
+END sp_SyncBetweenSchemas;
+/
+
+BEGIN
+    sp_SyncBetweenSchemas('SYNC_TO_REMOTE');
+END;
+/
+
+BEGIN
+    sp_SyncBetweenSchemas('SYNC_FROM_REMOTE');
+END;
+/
+
+-- TEST
+
+INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount)
+VALUES (999, 888, TO_DATE('2025-07-01', 'YYYY-MM-DD'), TO_DATE('2025-12-31', 'YYYY-MM-DD'), 1200);
+
+COMMIT;
+
+SELECT * FROM contracts
+WHERE studentId = 999 AND parentId = 888;
+
+SELECT * FROM REMOTE_DB1.contracts_remote
+WHERE studentId = 999 AND parentId = 888;
+
+BEGIN
+    sp_SyncBetweenSchemas('SYNC_TO_REMOTE');
+END;
+/
+
+SELECT * FROM REMOTE_DB1.contracts_remote
+WHERE studentId = 999 AND parentId = 888;
+
+--- End of oracle\finance\procedures\sync_data.sql ---
+
+--- Start of oracle\finance\triggers\instead_of_distributed_update.sql ---
+
+--Ten trigger jest przypięty do widoku vw_DistributedFinanceData, a jego zadaniem jest 
+--symulacja aktualizacji danych w systemie rozproszonym (danych pochodzących z różnych schematów lub "baz").
+
+CREATE OR REPLACE TRIGGER tr_DistributedFinanceData_Update
+INSTEAD OF UPDATE ON vw_DistributedFinanceData
+FOR EACH ROW
+BEGIN
+    IF :OLD.source_schema = 'MAIN' THEN
+        UPDATE contracts 
+        SET 
+            monthlyAmount = :NEW.monthlyAmount,
+            parentId = :NEW.parentId
+        WHERE id = :OLD.contract_id;
+
+        IF :NEW.payment_status != :OLD.payment_status THEN
+            UPDATE payments 
+            SET 
+                status = :NEW.payment_status,
+                paidDate = CASE WHEN :NEW.payment_status = 'PAID' THEN SYSDATE ELSE NULL END
+            WHERE contractId = :OLD.contract_id;
+        END IF;
+    ELSE
+        UPDATE REMOTE_DB1.contracts_remote 
+        SET 
+            monthlyAmount = :NEW.monthlyAmount,
+            parentId = :NEW.parentId
+        WHERE id = (:OLD.contract_id - 1000);
+    END IF;
+END;
+/
+
+--- End of oracle\finance\triggers\instead_of_distributed_update.sql ---
+
+--- Start of oracle\finance\triggers\sim_distributed_finance.sql ---
+
+CREATE OR REPLACE TRIGGER tr_DistributedFinanceData_Insert
+INSTEAD OF INSERT ON vw_DistributedFinanceData
+FOR EACH ROW
+BEGIN
+    IF :NEW.studentId > 100 THEN
+        INSERT INTO REMOTE_DB1.contracts_remote (studentId, parentId, startDate, endDate, monthlyAmount)
+        VALUES (:NEW.studentId, :NEW.parentId, SYSDATE, ADD_MONTHS(SYSDATE, 12), :NEW.monthlyAmount);
+    ELSE
+        INSERT INTO contracts (studentId, parentId, startDate, endDate, monthlyAmount)
+        VALUES (:NEW.studentId, :NEW.parentId, SYSDATE, ADD_MONTHS(SYSDATE, 12), :NEW.monthlyAmount);
+    END IF;
+END;
+/
+
+--- End of oracle\finance\triggers\sim_distributed_finance.sql ---
+
+--- Start of oracle\finance\views\sim_distributed_finance_data.sql ---
+
+CREATE OR REPLACE VIEW vw_DistributedFinanceData AS
+SELECT 
+    'MAIN' as source_schema,
+    c.id as contract_id,
+    c.studentId,
+    c.parentId,
+    c.monthlyAmount,
+    p.status as payment_status,
+    p.amount as payment_amount,
+    p.paidDate
+FROM contracts c
+    LEFT JOIN payments p ON c.id = p.contractId
+UNION ALL
+SELECT 
+    'REMOTE1' as source_schema,
+    cr.id + 1000 as contract_id,
+    cr.studentId,
+    cr.parentId,
+    cr.monthlyAmount,
+    'PENDING' as payment_status,
+    cr.monthlyAmount as payment_amount,
+    NULL as paidDate
+FROM REMOTE_DB1.contracts_remote cr;
+
+SELECT * FROM vw_DistributedFinanceData;
+
+--- End of oracle\finance\views\sim_distributed_finance_data.sql ---
